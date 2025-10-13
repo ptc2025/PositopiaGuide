@@ -47,18 +47,61 @@ export class ObjectStorageService {
 
   // Get upload URL for audio files
   async getAudioUploadURL(contentType: string = "audio/mpeg"): Promise<string> {
-    const bucket = this.storage.bucket(this.bucketId);
     const filename = `${this.privateDir}/audio_${Date.now()}_${Math.random().toString(36).substring(7)}.mp3`;
-    const file = bucket.file(filename);
-
-    const [url] = await file.getSignedUrl({
-      version: "v4",
-      action: "write",
-      expires: Date.now() + 15 * 60 * 1000, // 15 minutes
-      contentType,
+    
+    // Remove leading slash from filename if present
+    const cleanFilename = filename.startsWith("/") ? filename.substring(1) : filename;
+    
+    // Use Replit's sidecar to sign the URL
+    const signedUrl = await this.signObjectURL({
+      bucketName: this.bucketId,
+      objectName: cleanFilename,
+      method: "PUT",
+      ttlSec: 900, // 15 minutes
     });
 
-    return url;
+    return signedUrl;
+  }
+
+  // Sign object URL using Replit's sidecar endpoint
+  private async signObjectURL({
+    bucketName,
+    objectName,
+    method,
+    ttlSec,
+  }: {
+    bucketName: string;
+    objectName: string;
+    method: "GET" | "PUT" | "DELETE" | "HEAD";
+    ttlSec: number;
+  }): Promise<string> {
+    const request = {
+      bucket_name: bucketName,
+      object_name: objectName,
+      method,
+      expires_at: new Date(Date.now() + ttlSec * 1000).toISOString(),
+    };
+    
+    const response = await fetch(
+      `${REPLIT_SIDECAR_ENDPOINT}/object-storage/signed-object-url`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(request),
+      }
+    );
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Failed to sign object URL, status: ${response.status}, error: ${errorText}`
+      );
+    }
+
+    const { signed_url: signedURL } = await response.json();
+    return signedURL;
   }
 
   // Normalize object path for storage (relative to bucket root)
