@@ -35,11 +35,12 @@ export default function Home() {
 
   const analyzeMutation = useMutation({
     mutationFn: async (data: { emotion: TrafficLightEmotion; text: string; childId?: string }) => {
-      const result = await apiRequest(
+      const response = await apiRequest(
         "POST",
         "/api/analyze-emotion",
         data
       );
+      const result = await response.json();
       return result as ChildResponseContent;
     },
     onSuccess: (data) => {
