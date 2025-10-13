@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Loader2, Sparkles, Heart, AlertCircle, Settings, User } from "lucide-react";
+import { Loader2, Sparkles, Heart, AlertCircle, Settings, User, History, BarChart3 } from "lucide-react";
 import type { EmotionCategory, ChildResponseContent } from "@shared/schema";
 import { AudioPlayer } from "@/components/audio-player";
 import { ResponseDisplay } from "@/components/response-display";
@@ -96,12 +96,26 @@ export default function Home() {
             <User className="w-4 h-4 mr-2" />
             {selectedChildName}
           </Button>
-          <Link href="/admin">
-            <Button variant="ghost" size="sm" data-testid="button-admin-link">
-              <Settings className="w-4 h-4 mr-2" />
-              Admin
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/history">
+              <Button variant="ghost" size="sm" data-testid="button-history-link">
+                <History className="w-4 h-4 mr-2" />
+                History
+              </Button>
+            </Link>
+            <Link href="/dashboard">
+              <Button variant="ghost" size="sm" data-testid="button-dashboard-link">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Dashboard
+              </Button>
+            </Link>
+            <Link href="/admin">
+              <Button variant="ghost" size="sm" data-testid="button-admin-link">
+                <Settings className="w-4 h-4 mr-2" />
+                Admin
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Header with Dune */}

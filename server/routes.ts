@@ -396,6 +396,21 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
     }
   });
 
+  app.get("/api/emotion-checkins", async (req, res) => {
+    try {
+      const { childId } = req.query;
+      if (!childId) {
+        return res.status(400).json({ error: "Child ID is required" });
+      }
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      const checkIns = await storage.getCheckInsByChild(childId as string, limit);
+      res.json(checkIns);
+    } catch (error) {
+      console.error("Error fetching check-ins:", error);
+      res.status(500).json({ error: "Failed to fetch check-ins" });
+    }
+  });
+
   app.get("/api/check-ins/child/:childId", async (req, res) => {
     try {
       const { childId } = req.params;
@@ -417,6 +432,53 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
     } catch (error) {
       console.error("Error fetching family check-ins:", error);
       res.status(500).json({ error: "Failed to fetch check-ins" });
+    }
+  });
+
+  // ===== Dashboard Analytics =====
+  app.get("/api/dashboard", async (req, res) => {
+    try {
+      const { familyCode } = req.query;
+      
+      if (!familyCode) {
+        return res.status(400).json({ error: "Family code is required" });
+      }
+
+      const children = await storage.getChildrenByFamilyCode(familyCode as string);
+      const allCheckIns = await storage.getCheckInsByFamilyCode(familyCode as string, 1000);
+
+      const emotionBreakdown = {
+        red: allCheckIns.filter(c => c.emotion === "red").length,
+        yellow: allCheckIns.filter(c => c.emotion === "yellow").length,
+        green: allCheckIns.filter(c => c.emotion === "green").length,
+      };
+
+      const childrenStats = children.map(child => {
+        const childCheckIns = allCheckIns.filter(c => c.childId === child.id);
+        const lastCheckIn = childCheckIns.sort((a, b) => 
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        )[0];
+
+        return {
+          child,
+          checkIns: childCheckIns.length,
+          lastEmotion: lastCheckIn?.emotion,
+        };
+      });
+
+      const recentCheckIns = allCheckIns
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 10);
+
+      res.json({
+        totalCheckIns: allCheckIns.length,
+        emotionBreakdown,
+        childrenStats,
+        recentCheckIns,
+      });
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      res.status(500).json({ error: "Failed to fetch dashboard data" });
     }
   });
 
