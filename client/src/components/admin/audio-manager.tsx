@@ -106,13 +106,10 @@ export function AudioManager() {
       );
       uploadURL = uploadUrlResponse.uploadURL;
       
-      // Upload file
+      // Upload file directly without extra headers
       const uploadResponse = await fetch(uploadURL, {
         method: "PUT",
         body: file,
-        headers: {
-          "Content-Type": file.type,
-        },
       });
 
       if (!uploadResponse.ok) {
