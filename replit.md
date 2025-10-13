@@ -4,6 +4,26 @@
 An interactive emotional learning web app for children based on the Positopia World book featuring Dune the Bunny. Children use a traffic light interface (red/yellow/green buttons) to describe their feelings and receive AI-selected personalized responses including musical tracks, affirmations, activities, and jokes.
 
 ## Recent Changes (Oct 13, 2025)
+
+### Multi-Child & Family Support
+- Added `children` and `emotionCheckIns` database tables for profile management
+- Implemented family code system for grouping children (families/classrooms)
+- Built profile selection UI with colorful avatar system
+- Created child profile CRUD operations with secure family-scoped queries
+- Automatic emotion check-in logging when children share feelings
+
+### Analytics & Insights
+- Built parent/teacher dashboard with family-wide analytics
+- Emotion breakdown tracking (red/yellow/green distribution)
+- Per-child statistics and recent activity timeline
+- Individual child emotion history page with chronological check-ins
+
+### Wellness Features
+- Breathing exercise page with animated guides (Box, 4-7-8, Simple Deep)
+- Visual breathing circle with color-coded phases and countdown timer
+- Play/pause/reset controls for guided meditation practice
+
+### Previous Updates
 - Implemented complete object storage integration for audio file uploads
 - Added AI-powered auto-categorization for audio files (red/yellow/green/general)
 - Created object storage service with presigned URL upload functionality
@@ -23,6 +43,8 @@ An interactive emotional learning web app for children based on the Positopia Wo
 - **activities**: Suggested activities for different emotional states
 - **jokes**: Kid-friendly jokes to lift spirits
 - **tts_settings**: Text-to-speech configuration (planned: emotion-specific profiles)
+- **children**: Child profiles with names, avatar colors, and family codes
+- **emotionCheckIns**: Emotion tracking with timestamps, feelings, and detected emotions
 
 ### Tech Stack
 - **Frontend**: React, Wouter (routing), TanStack Query, Shadcn UI
@@ -36,8 +58,12 @@ An interactive emotional learning web app for children based on the Positopia Wo
 1. **Traffic Light Interface**: Red/yellow/green buttons for emotion input
 2. **AI Response System**: Categorizes emotions and selects appropriate content
 3. **Audio Playback**: Streams music from object storage with volume control
-4. **Admin Panel**: Full CRUD for all content types
-5. **Auto-Categorization**: AI categorizes uploaded audio files by emotion
+4. **Multi-Child Profiles**: Family code system for grouping children
+5. **Emotion History**: Track emotional check-ins over time per child
+6. **Parent/Teacher Dashboard**: Analytics and insights across all children
+7. **Breathing Exercises**: Guided meditation with animated breathing circles
+8. **Admin Panel**: Full CRUD for all content types
+9. **Auto-Categorization**: AI categorizes uploaded audio files by emotion
 
 ### Design System
 - **Colors**: Soft teal primary, gentle purple secondary, warm cream backgrounds
@@ -68,9 +94,16 @@ An interactive emotional learning web app for children based on the Positopia Wo
 - `GET/POST /api/jokes` - Jokes CRUD
 - `GET/POST /api/tts-settings` - TTS configuration CRUD
 
+### Child Profiles & Tracking
+- `GET /api/children?familyCode={code}` - Get children by family code
+- `POST /api/children` - Create new child profile
+- `PUT /api/children/:id` - Update child profile
+- `DELETE /api/children/:id` - Delete child profile
+- `GET /api/emotion-checkins?childId={id}` - Get child's emotion history
+- `GET /api/dashboard?familyCode={code}` - Get family dashboard analytics
+
 ### AI Integration
-- `POST /api/categorize` - Categorize child's emotion input
-- `POST /api/select-content` - Select personalized response content
+- `POST /api/analyze-emotion` - Analyze emotion and select content (logs check-in)
 
 ## User Preferences
 - Child-friendly UI design is critical - large buttons, bright colors, simple language
@@ -87,9 +120,14 @@ An interactive emotional learning web app for children based on the Positopia Wo
 ## Important Files
 - `shared/schema.ts` - Database schema and types
 - `server/routes.ts` - API endpoints
+- `server/storage.ts` - Database storage layer
 - `server/objectStorage.ts` - Object storage service
 - `server/openai.ts` - OpenAI integration
 - `client/src/pages/home.tsx` - Main traffic light interface
+- `client/src/pages/profile-select.tsx` - Child profile selection
+- `client/src/pages/history.tsx` - Individual emotion history
+- `client/src/pages/dashboard.tsx` - Family analytics dashboard
+- `client/src/pages/breathing.tsx` - Breathing exercises
 - `client/src/pages/admin.tsx` - Admin dashboard
 - `client/src/components/admin/audio-manager.tsx` - Audio upload & management
 - `design_guidelines.md` - UI/UX design specifications
