@@ -448,26 +448,26 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
       const allCheckIns = await storage.getCheckInsByFamilyCode(familyCode as string, 1000);
 
       const emotionBreakdown = {
-        red: allCheckIns.filter(c => c.emotion === "red").length,
-        yellow: allCheckIns.filter(c => c.emotion === "yellow").length,
-        green: allCheckIns.filter(c => c.emotion === "green").length,
+        red: allCheckIns.filter(c => c.emotionCategory === "red").length,
+        yellow: allCheckIns.filter(c => c.emotionCategory === "yellow").length,
+        green: allCheckIns.filter(c => c.emotionCategory === "green").length,
       };
 
       const childrenStats = children.map(child => {
         const childCheckIns = allCheckIns.filter(c => c.childId === child.id);
         const lastCheckIn = childCheckIns.sort((a, b) => 
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )[0];
 
         return {
           child,
           checkIns: childCheckIns.length,
-          lastEmotion: lastCheckIn?.emotion,
+          lastEmotion: lastCheckIn?.emotionCategory,
         };
       });
 
       const recentCheckIns = allCheckIns
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(0, 10);
 
       res.json({

@@ -57,16 +57,18 @@ export default function Dashboard() {
     );
   }
 
-  const emotionColors = {
+  const emotionColors: Record<string, string> = {
     red: "bg-red-500",
     yellow: "bg-yellow-500",
     green: "bg-green-500",
+    general: "bg-blue-500",
   };
 
-  const emotionLabels = {
+  const emotionLabels: Record<string, string> = {
     red: "Not Great",
     yellow: "Nervous",
     green: "Feeling Good",
+    general: "General",
   };
 
   return (
@@ -224,7 +226,7 @@ export default function Dashboard() {
                   <div className="space-y-3">
                     {stats.recentCheckIns.slice(0, 10).map((checkIn) => {
                       const child = stats.childrenStats.find(s => s.child.id === checkIn.childId)?.child;
-                      const date = new Date(checkIn.timestamp);
+                      const date = new Date(checkIn.createdAt);
                       
                       return (
                         <div 
@@ -233,17 +235,17 @@ export default function Dashboard() {
                           data-testid={`recent-checkin-${checkIn.id}`}
                         >
                           <div 
-                            className={`w-2 h-2 rounded-full mt-2 ${emotionColors[checkIn.emotion]}`}
+                            className={`w-2 h-2 rounded-full mt-2 ${emotionColors[checkIn.emotionCategory]}`}
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <p className="font-medium">{child?.name || "Unknown"}</p>
                               <Badge variant="outline" className="capitalize text-xs">
-                                {emotionLabels[checkIn.emotion]}
+                                {emotionLabels[checkIn.emotionCategory]}
                               </Badge>
                             </div>
                             <p className="text-sm text-muted-foreground line-clamp-1">
-                              {checkIn.text}
+                              {checkIn.feelingText}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               {date.toLocaleDateString()} at {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

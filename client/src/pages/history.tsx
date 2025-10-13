@@ -6,16 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Calendar, Heart, Smile, Frown } from "lucide-react";
 import type { EmotionCheckIn } from "@shared/schema";
 
-const emotionColors = {
+const emotionColors: Record<string, string> = {
   red: "bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-200",
   yellow: "bg-yellow-100 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-200",
   green: "bg-green-100 dark:bg-green-950 text-green-800 dark:text-green-200",
+  general: "bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-200",
 };
 
-const emotionIcons = {
+const emotionIcons: Record<string, typeof Heart> = {
   red: Frown,
   yellow: Heart,
   green: Smile,
+  general: Heart,
 };
 
 export default function History() {
@@ -90,20 +92,20 @@ export default function History() {
         ) : (
           <div className="space-y-4">
             {checkIns.map((checkIn) => {
-              const EmotionIcon = emotionIcons[checkIn.emotion];
-              const date = new Date(checkIn.timestamp);
+              const EmotionIcon = emotionIcons[checkIn.emotionCategory];
+              const date = new Date(checkIn.createdAt);
               
               return (
                 <Card key={checkIn.id} data-testid={`checkin-${checkIn.id}`}>
                   <CardHeader>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${emotionColors[checkIn.emotion]}`}>
+                        <div className={`p-2 rounded-lg ${emotionColors[checkIn.emotionCategory]}`}>
                           <EmotionIcon className="h-5 w-5" />
                         </div>
                         <div>
                           <CardTitle className="text-lg capitalize">
-                            {checkIn.emotion} Zone
+                            {checkIn.emotionCategory} Zone
                           </CardTitle>
                           <CardDescription>
                             {date.toLocaleDateString()} at {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -111,12 +113,12 @@ export default function History() {
                         </div>
                       </div>
                       <Badge variant="secondary" className="capitalize">
-                        {checkIn.emotion}
+                        {checkIn.emotionCategory}
                       </Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-foreground">{checkIn.text}</p>
+                    <p className="text-foreground">{checkIn.feelingText}</p>
                   </CardContent>
                 </Card>
               );

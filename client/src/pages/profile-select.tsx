@@ -102,7 +102,7 @@ export default function ProfileSelect() {
                 data-testid="input-family-code"
               />
             </div>
-            <Button onClick={handleSetFamilyCode} className="w-full" data-testid="button-set-family-code">
+            <Button onClick={handleSetFamilyCode} className="w-full" data-testid="button-continue">
               Continue
             </Button>
           </CardContent>
