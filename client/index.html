@@ -9,6 +9,23 @@
   </head>
   <body>
     <div id="root"></div>
+    <div id="fallback" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; font-family: Arial; z-index: 9999;">
+      <h1 style="color: #000; font-size: 48px; margin-bottom: 20px;">LOADING POSITOPIA...</h1>
+      <p style="color: #666; font-size: 20px;">If you see this for more than 5 seconds, JavaScript may be disabled or blocked.</p>
+      <p style="color: #999; font-size: 16px; margin-top: 20px;">Server is running on port 5000</p>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Hide fallback once React loads
+      window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+          const fallback = document.getElementById('fallback');
+          const root = document.getElementById('root');
+          if (root && root.children.length > 0) {
+            if (fallback) fallback.style.display = 'none';
+          }
+        }, 100);
+      });
+    </script>
   </body>
 </html>
