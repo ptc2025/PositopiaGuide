@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Loader2, Sparkles, Heart, AlertCircle, Settings } from "lucide-react";
+import { Loader2, Sparkles, Heart, AlertCircle, Settings, User } from "lucide-react";
 import type { EmotionCategory, ChildResponseContent } from "@shared/schema";
 import { AudioPlayer } from "@/components/audio-player";
 import { ResponseDisplay } from "@/components/response-display";
@@ -14,21 +15,35 @@ import duneImage from "@assets/dune-with-pinwheel-241x300_1760364974212.jpg";
 type TrafficLightEmotion = "red" | "yellow" | "green";
 
 export default function Home() {
+  const [, setLocation] = useLocation();
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const [selectedChildName, setSelectedChildName] = useState<string>("");
   const [selectedEmotion, setSelectedEmotion] = useState<TrafficLightEmotion | null>(null);
   const [feelingText, setFeelingText] = useState("");
   const [responseContent, setResponseContent] = useState<ChildResponseContent | null>(null);
 
+  useEffect(() => {
+    const childId = localStorage.getItem("selectedChildId");
+    const childName = localStorage.getItem("selectedChildName");
+    if (!childId) {
+      setLocation("/select-profile");
+    } else {
+      setSelectedChildId(childId);
+      setSelectedChildName(childName || "");
+    }
+  }, [setLocation]);
+
   const analyzeMutation = useMutation({
-    mutationFn: async (data: { emotion: TrafficLightEmotion; text: string }) => {
-      const result = await apiRequest<ChildResponseContent>(
+    mutationFn: async (data: { emotion: TrafficLightEmotion; text: string; childId?: string }) => {
+      const result = await apiRequest(
         "POST",
         "/api/analyze-emotion",
         data
       );
-      return result;
+      return result as ChildResponseContent;
     },
     onSuccess: (data) => {
-      setResponseContent(data);
+      setResponseContent(data as ChildResponseContent);
       setFeelingText("");
     },
   });
@@ -43,8 +58,15 @@ export default function Home() {
       analyzeMutation.mutate({
         emotion: selectedEmotion,
         text: feelingText.trim(),
+        childId: selectedChildId || undefined,
       });
     }
+  };
+
+  const handleChangeProfile = () => {
+    localStorage.removeItem("selectedChildId");
+    localStorage.removeItem("selectedChildName");
+    setLocation("/select-profile");
   };
 
   const handleReset = () => {
@@ -68,8 +90,12 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Admin Link */}
-        <div className="flex justify-end mb-4">
+        {/* Header with Admin and Profile Switch */}
+        <div className="flex justify-between mb-4">
+          <Button variant="ghost" size="sm" onClick={handleChangeProfile} data-testid="button-change-profile">
+            <User className="w-4 h-4 mr-2" />
+            {selectedChildName}
+          </Button>
           <Link href="/admin">
             <Button variant="ghost" size="sm" data-testid="button-admin-link">
               <Settings className="w-4 h-4 mr-2" />

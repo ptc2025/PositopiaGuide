@@ -5,6 +5,8 @@ import {
   activities,
   jokes,
   ttsSettings,
+  children,
+  emotionCheckIns,
   type AudioFile,
   type InsertAudioFile,
   type Affirmation,
@@ -15,10 +17,14 @@ import {
   type InsertJoke,
   type TtsSetting,
   type InsertTtsSetting,
+  type Child,
+  type InsertChild,
+  type EmotionCheckIn,
+  type InsertEmotionCheckIn,
   type EmotionCategory,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, or } from "drizzle-orm";
+import { eq, or, and, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Audio Files
@@ -56,6 +62,19 @@ export interface IStorage {
   // TTS Settings
   getTtsSettings(): Promise<TtsSetting | undefined>;
   updateTtsSettings(data: InsertTtsSetting): Promise<TtsSetting>;
+
+  // Children
+  getAllChildren(): Promise<Child[]>;
+  getChildrenByFamilyCode(familyCode: string): Promise<Child[]>;
+  getChildById(id: string): Promise<Child | undefined>;
+  createChild(data: InsertChild): Promise<Child>;
+  updateChild(id: string, data: Partial<InsertChild>): Promise<Child | undefined>;
+  deleteChild(id: string): Promise<void>;
+
+  // Emotion Check-Ins
+  createCheckIn(data: InsertEmotionCheckIn): Promise<EmotionCheckIn>;
+  getCheckInsByChild(childId: string, limit?: number): Promise<EmotionCheckIn[]>;
+  getCheckInsByFamilyCode(familyCode: string, limit?: number): Promise<EmotionCheckIn[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -231,6 +250,67 @@ export class DatabaseStorage implements IStorage {
       const [created] = await db.insert(ttsSettings).values(data).returning();
       return created;
     }
+  }
+
+  // Children
+  async getAllChildren(): Promise<Child[]> {
+    return await db.select().from(children);
+  }
+
+  async getChildrenByFamilyCode(familyCode: string): Promise<Child[]> {
+    return await db.select().from(children).where(eq(children.familyCode, familyCode));
+  }
+
+  async getChildById(id: string): Promise<Child | undefined> {
+    const [child] = await db.select().from(children).where(eq(children.id, id));
+    return child || undefined;
+  }
+
+  async createChild(data: InsertChild): Promise<Child> {
+    const [child] = await db.insert(children).values(data).returning();
+    return child;
+  }
+
+  async updateChild(id: string, data: Partial<InsertChild>): Promise<Child | undefined> {
+    const [child] = await db
+      .update(children)
+      .set(data)
+      .where(eq(children.id, id))
+      .returning();
+    return child || undefined;
+  }
+
+  async deleteChild(id: string): Promise<void> {
+    await db.delete(children).where(eq(children.id, id));
+  }
+
+  // Emotion Check-Ins
+  async createCheckIn(data: InsertEmotionCheckIn): Promise<EmotionCheckIn> {
+    const [checkIn] = await db.insert(emotionCheckIns).values(data).returning();
+    return checkIn;
+  }
+
+  async getCheckInsByChild(childId: string, limit: number = 50): Promise<EmotionCheckIn[]> {
+    return await db
+      .select()
+      .from(emotionCheckIns)
+      .where(eq(emotionCheckIns.childId, childId))
+      .orderBy(desc(emotionCheckIns.createdAt))
+      .limit(limit);
+  }
+
+  async getCheckInsByFamilyCode(familyCode: string, limit: number = 100): Promise<EmotionCheckIn[]> {
+    const childrenInFamily = await this.getChildrenByFamilyCode(familyCode);
+    const childIds = childrenInFamily.map(c => c.id);
+    
+    if (childIds.length === 0) return [];
+    
+    return await db
+      .select()
+      .from(emotionCheckIns)
+      .where(or(...childIds.map(id => eq(emotionCheckIns.childId, id))))
+      .orderBy(desc(emotionCheckIns.createdAt))
+      .limit(limit);
   }
 }
 

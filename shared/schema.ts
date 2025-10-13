@@ -6,6 +6,9 @@ import { z } from "zod";
 // Emotion categories for the traffic light system
 export type EmotionCategory = "red" | "yellow" | "green" | "general";
 
+// User roles
+export type UserRole = "parent" | "teacher" | "child";
+
 // Audio files table - stores uploaded audio tracks
 export const audioFiles = pgTable("audio_files", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -52,6 +55,26 @@ export const ttsSettings = pgTable("tts_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Children profiles table
+export const children = pgTable("children", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  age: integer("age"),
+  avatarColor: text("avatar_color").notNull().default("blue"), // For visual identification
+  familyCode: text("family_code").notNull(), // Simple code to group children (family or classroom)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Emotion check-ins table - tracks all emotional interactions
+export const emotionCheckIns = pgTable("emotion_check_ins", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  childId: varchar("child_id").notNull(),
+  emotionCategory: text("emotion_category").notNull().$type<EmotionCategory>(),
+  feelingText: text("feeling_text").notNull(), // What the child typed
+  detectedEmotion: text("detected_emotion").notNull().$type<EmotionCategory>(), // AI-detected emotion
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertAudioFileSchema = createInsertSchema(audioFiles).omit({
   id: true,
@@ -78,6 +101,16 @@ export const insertTtsSettingSchema = createInsertSchema(ttsSettings).omit({
   updatedAt: true,
 });
 
+export const insertChildSchema = createInsertSchema(children).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertEmotionCheckInSchema = createInsertSchema(emotionCheckIns).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type AudioFile = typeof audioFiles.$inferSelect;
 export type InsertAudioFile = z.infer<typeof insertAudioFileSchema>;
@@ -93,6 +126,12 @@ export type InsertJoke = z.infer<typeof insertJokeSchema>;
 
 export type TtsSetting = typeof ttsSettings.$inferSelect;
 export type InsertTtsSetting = z.infer<typeof insertTtsSettingSchema>;
+
+export type Child = typeof children.$inferSelect;
+export type InsertChild = z.infer<typeof insertChildSchema>;
+
+export type EmotionCheckIn = typeof emotionCheckIns.$inferSelect;
+export type InsertEmotionCheckIn = z.infer<typeof insertEmotionCheckInSchema>;
 
 // AI Response type for emotion analysis
 export interface EmotionAnalysisResponse {

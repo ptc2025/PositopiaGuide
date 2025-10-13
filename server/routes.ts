@@ -9,6 +9,8 @@ import {
   insertActivitySchema,
   insertJokeSchema,
   insertTtsSettingSchema,
+  insertChildSchema,
+  insertEmotionCheckInSchema,
   type EmotionCategory,
   type ChildResponseContent,
 } from "@shared/schema";
@@ -327,10 +329,101 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
     }
   });
 
+  // ===== Children Profiles =====
+  app.get("/api/children", async (req, res) => {
+    try {
+      const { familyCode } = req.query;
+      
+      // Require familyCode for data security
+      if (!familyCode) {
+        return res.status(400).json({ error: "Family code is required" });
+      }
+      
+      const childrenList = await storage.getChildrenByFamilyCode(familyCode as string);
+      res.json(childrenList);
+    } catch (error) {
+      console.error("Error fetching children:", error);
+      res.status(500).json({ error: "Failed to fetch children" });
+    }
+  });
+
+  app.post("/api/children", async (req, res) => {
+    try {
+      const data = insertChildSchema.parse(req.body);
+      const child = await storage.createChild(data);
+      res.json(child);
+    } catch (error) {
+      console.error("Error creating child:", error);
+      res.status(400).json({ error: "Invalid child data" });
+    }
+  });
+
+  app.put("/api/children/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const data = insertChildSchema.partial().parse(req.body);
+      const child = await storage.updateChild(id, data);
+      if (!child) {
+        return res.status(404).json({ error: "Child not found" });
+      }
+      res.json(child);
+    } catch (error) {
+      console.error("Error updating child:", error);
+      res.status(400).json({ error: "Invalid child data" });
+    }
+  });
+
+  app.delete("/api/children/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteChild(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting child:", error);
+      res.status(500).json({ error: "Failed to delete child" });
+    }
+  });
+
+  // ===== Emotion Check-Ins =====
+  app.post("/api/check-ins", async (req, res) => {
+    try {
+      const data = insertEmotionCheckInSchema.parse(req.body);
+      const checkIn = await storage.createCheckIn(data);
+      res.json(checkIn);
+    } catch (error) {
+      console.error("Error creating check-in:", error);
+      res.status(400).json({ error: "Invalid check-in data" });
+    }
+  });
+
+  app.get("/api/check-ins/child/:childId", async (req, res) => {
+    try {
+      const { childId } = req.params;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+      const checkIns = await storage.getCheckInsByChild(childId, limit);
+      res.json(checkIns);
+    } catch (error) {
+      console.error("Error fetching check-ins:", error);
+      res.status(500).json({ error: "Failed to fetch check-ins" });
+    }
+  });
+
+  app.get("/api/check-ins/family/:familyCode", async (req, res) => {
+    try {
+      const { familyCode } = req.params;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      const checkIns = await storage.getCheckInsByFamilyCode(familyCode, limit);
+      res.json(checkIns);
+    } catch (error) {
+      console.error("Error fetching family check-ins:", error);
+      res.status(500).json({ error: "Failed to fetch check-ins" });
+    }
+  });
+
   // ===== AI Emotion Analysis =====
   app.post("/api/analyze-emotion", async (req, res) => {
     try {
-      const { emotion, text } = req.body;
+      const { emotion, text, childId } = req.body;
 
       if (!emotion || !text) {
         return res.status(400).json({ error: "Emotion and text are required" });
@@ -361,6 +454,16 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
 
       const aiResult = JSON.parse(aiResponse.choices[0].message.content || "{}");
       const finalCategory: EmotionCategory = aiResult.category || emotion;
+
+      // Save emotion check-in if childId is provided
+      if (childId) {
+        await storage.createCheckIn({
+          childId,
+          emotionCategory: emotion,
+          feelingText: text,
+          detectedEmotion: finalCategory,
+        });
+      }
 
       // Fetch content for this emotion category
       const [audioFiles, affirmations, activities, jokes] = await Promise.all([
