@@ -99,12 +99,13 @@ export function AudioManager() {
       setUploadStatus("uploading");
       
       // Get upload URL with contentType
-      const uploadUrlResponse = await apiRequest<{ uploadURL: string }>(
+      const uploadUrlResponse = await apiRequest(
         "POST", 
         "/api/audio/upload-url", 
         { contentType: file.type }
       );
-      uploadURL = uploadUrlResponse.uploadURL;
+      const uploadData = await uploadUrlResponse.json() as { uploadURL: string };
+      uploadURL = uploadData.uploadURL;
       
       // Upload file directly without extra headers
       const uploadResponse = await fetch(uploadURL, {
@@ -120,26 +121,27 @@ export function AudioManager() {
       setUploadStatus("categorizing");
 
       // Auto-categorize
-      const categorizeResponse = await apiRequest<{ objectPath: string; category: EmotionCategory; reasoning: string }>(
+      const categorizeResponse = await apiRequest(
         "POST",
         "/api/audio/categorize",
         { uploadURL, name: file.name }
       );
+      const categorizeData = await categorizeResponse.json() as { objectPath: string; category: EmotionCategory; reasoning: string };
 
-      objectPath = categorizeResponse.objectPath;
+      objectPath = categorizeData.objectPath;
 
       setFormData({
         ...formData,
         name: file.name.replace(/\.[^/.]+$/, ""),
-        filePath: categorizeResponse.objectPath,
-        category: categorizeResponse.category,
+        filePath: categorizeData.objectPath,
+        category: categorizeData.category,
       });
 
       setUploadStatus("done");
       
       toast({
         title: "File uploaded!",
-        description: `Auto-categorized as: ${categorizeResponse.category}`,
+        description: `Auto-categorized as: ${categorizeData.category}`,
       });
     } catch (error) {
       console.error("Upload error:", error);
@@ -150,12 +152,13 @@ export function AudioManager() {
         if (!objectPath) {
           try {
             // Make a simple request to get the normalized path without categorization
-            const pathResponse = await apiRequest<{ objectPath: string }>(
+            const pathResponse = await apiRequest(
               "POST",
               "/api/audio/normalize-path",
               { uploadURL }
             );
-            objectPath = pathResponse.objectPath;
+            const pathData = await pathResponse.json() as { objectPath: string };
+            objectPath = pathData.objectPath;
           } catch (pathError) {
             console.error("Failed to normalize object path:", pathError);
             // Leave objectPath empty - admin will need to enter manually
