@@ -3,7 +3,18 @@
 ## Overview
 An interactive emotional learning web app for children based on the Positopia World book featuring Dune the Bunny. Children use a traffic light interface (red/yellow/green buttons) to describe their feelings and receive AI-selected personalized responses including musical tracks, affirmations, activities, and jokes.
 
-## Recent Changes (Oct 13, 2025)
+## Recent Changes (Oct 18, 2025)
+
+### Audio & Text-to-Speech Enhancement
+- Implemented auto-play functionality for background music when responses are shown
+- Added text-to-speech (TTS) for affirmations using Web Speech API
+- Created CombinedAudioPlayer component for synchronized playback
+- Music plays at 50% volume while AI voice reads affirmations
+- Single play/pause button controls both audio streams simultaneously
+- Added restart button to replay both music and affirmation
+- Child-friendly TTS settings (slower rate, slightly higher pitch)
+
+### Previous Updates (Oct 13, 2025)
 
 ### Multi-Child & Family Support
 - Added `children` and `emotionCheckIns` database tables for profile management
