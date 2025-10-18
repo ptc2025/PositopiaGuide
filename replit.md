@@ -7,12 +7,14 @@ An interactive emotional learning web app for children based on the Positopia Wo
 
 ### Audio & Text-to-Speech Enhancement
 - Implemented auto-play functionality for background music when responses are shown
-- Added text-to-speech (TTS) for affirmations using Web Speech API
+- ~~Added text-to-speech (TTS) for affirmations using Web Speech API~~
+- **Upgraded to OpenAI's Text-to-Speech API for natural, human-like voices**
+- Using "Nova" voice profile - warm, friendly female voice perfect for children
 - Created CombinedAudioPlayer component for synchronized playback
 - Music plays at 50% volume while AI voice reads affirmations
 - Single play/pause button controls both audio streams simultaneously
 - Added restart button to replay both music and affirmation
-- Child-friendly TTS settings (slower rate, slightly higher pitch)
+- Voice speaks at 0.9x speed for better child comprehension
 
 ### Previous Updates (Oct 13, 2025)
 
