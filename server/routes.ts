@@ -482,6 +482,28 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
     }
   });
 
+  // ===== Text-to-Speech Generation =====
+  app.post("/api/tts/generate", async (req, res) => {
+    try {
+      const { text, voice = "nova" } = req.body;
+
+      if (!text) {
+        return res.status(400).json({ error: "Text is required" });
+      }
+
+      const { generateSpeechBase64 } = await import("./openai-tts");
+      const audioBase64 = await generateSpeechBase64(text, voice);
+
+      res.json({ 
+        audio: `data:audio/mp3;base64,${audioBase64}`,
+        voice: voice
+      });
+    } catch (error) {
+      console.error("Error generating TTS:", error);
+      res.status(500).json({ error: "Failed to generate speech" });
+    }
+  });
+
   // ===== AI Emotion Analysis =====
   app.post("/api/analyze-emotion", async (req, res) => {
     try {

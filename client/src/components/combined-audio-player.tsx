@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Play, Pause, Volume2, VolumeX, RotateCcw } from "lucide-react";
-import { useTTS } from "@/hooks/use-tts";
+import { Play, Pause, Volume2, VolumeX, RotateCcw, Loader2 } from "lucide-react";
+import { useOpenAITTS } from "@/hooks/use-openai-tts";
 import type { AudioFile, Affirmation } from "@shared/schema";
 
 interface CombinedAudioPlayerProps {
@@ -19,10 +19,15 @@ export function CombinedAudioPlayer({ audioFile, affirmation, onComplete }: Comb
   const [volume, setVolume] = useState(audioFile?.volume ? audioFile.volume / 100 : 0.7);
   const [isMuted, setIsMuted] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
-  const { speak, pause: pauseTTS, resume: resumeTTS, stop: stopTTS } = useTTS({
-    rate: 0.85, // Slower for children
-    pitch: 1.1, // Slightly higher pitch for friendliness
-    volume: 0.9,
+  const [ttsReady, setTtsReady] = useState(false);
+  
+  // Use OpenAI TTS for natural-sounding voice
+  const { generateAndPlay, pause: pauseTTS, resume: resumeTTS, stop: stopTTS, isLoading: isTTSLoading } = useOpenAITTS({
+    voice: "nova", // Nova is a warm, friendly female voice perfect for children
+    onError: (error) => {
+      console.error("TTS Error:", error);
+      setTtsReady(true); // Allow playback to continue even if TTS fails
+    },
   });
 
   // Construct the proper URL for accessing the audio file through our objects endpoint
@@ -30,14 +35,14 @@ export function CombinedAudioPlayer({ audioFile, affirmation, onComplete }: Comb
 
   // Auto-start playback when component mounts or content changes
   useEffect(() => {
-    if ((audioFile || affirmation) && !hasStarted) {
+    if ((audioFile || affirmation) && !hasStarted && !isTTSLoading) {
       // Small delay to ensure component is fully rendered
       const timer = setTimeout(() => {
         startPlayback();
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [audioFile, affirmation, hasStarted]);
+  }, [audioFile, affirmation, hasStarted, isTTSLoading]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -68,7 +73,7 @@ export function CombinedAudioPlayer({ audioFile, affirmation, onComplete }: Comb
     }
   }, [volume, isMuted, audioUrl]);
 
-  const startPlayback = () => {
+  const startPlayback = async () => {
     setHasStarted(true);
     
     // Start music if available
@@ -78,12 +83,16 @@ export function CombinedAudioPlayer({ audioFile, affirmation, onComplete }: Comb
       });
     }
 
-    // Start TTS for affirmation if available
+    // Generate and play TTS for affirmation if available
     if (affirmation?.text) {
+      setTtsReady(false);
       // Small delay to let music start first
-      setTimeout(() => {
-        speak(affirmation.text);
+      setTimeout(async () => {
+        await generateAndPlay(affirmation.text);
+        setTtsReady(true);
       }, 300);
+    } else {
+      setTtsReady(true);
     }
 
     setIsPlaying(true);
@@ -114,7 +123,7 @@ export function CombinedAudioPlayer({ audioFile, affirmation, onComplete }: Comb
     }
   };
 
-  const handleRestart = () => {
+  const handleRestart = async () => {
     // Stop everything
     if (audioRef.current && audioUrl) {
       audioRef.current.pause();
@@ -124,6 +133,7 @@ export function CombinedAudioPlayer({ audioFile, affirmation, onComplete }: Comb
     setIsPlaying(false);
     setHasStarted(false);
     setCurrentTime(0);
+    setTtsReady(false);
     
     // Restart after a brief delay
     setTimeout(() => {
@@ -182,8 +192,11 @@ export function CombinedAudioPlayer({ audioFile, affirmation, onComplete }: Comb
             size="lg"
             className="w-20 h-20 rounded-full"
             data-testid="button-play-pause"
+            disabled={isTTSLoading}
           >
-            {isPlaying ? (
+            {isTTSLoading ? (
+              <Loader2 className="w-8 h-8 animate-spin" />
+            ) : isPlaying ? (
               <Pause className="w-8 h-8" />
             ) : (
               <Play className="w-8 h-8 ml-1" />
@@ -195,6 +208,7 @@ export function CombinedAudioPlayer({ audioFile, affirmation, onComplete }: Comb
             variant="outline"
             className="w-20 h-20 rounded-full"
             data-testid="button-restart"
+            disabled={isTTSLoading}
           >
             <RotateCcw className="w-6 h-6" />
           </Button>
@@ -243,9 +257,14 @@ export function CombinedAudioPlayer({ audioFile, affirmation, onComplete }: Comb
         </div>
 
         {/* Info Text */}
-        {affirmation && !audioFile && (
+        {isTTSLoading && (
           <div className="text-center text-sm text-muted-foreground">
-            <p>Speaking affirmation...</p>
+            <p>Generating natural voice...</p>
+          </div>
+        )}
+        {affirmation && !audioFile && !isTTSLoading && (
+          <div className="text-center text-sm text-muted-foreground">
+            <p>Speaking affirmation with AI voice...</p>
           </div>
         )}
       </div>
