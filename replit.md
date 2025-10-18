@@ -5,6 +5,14 @@ An interactive emotional learning web app for children based on the Positopia Wo
 
 ## Recent Changes (Oct 18, 2025)
 
+### UI Redesign - Abstract Traffic Light Interface
+- Redesigned emotion selection as pure circular colored buttons
+- Removed all text and descriptions for true abstract representation
+- Three 128px circles arranged vertically like a real traffic light
+- Clean, minimalist design focused on color association
+- Smooth hover and click animations for tactile feedback
+- Maintained accessibility with aria-labels
+
 ### Audio & Text-to-Speech Enhancement
 - Implemented auto-play functionality for background music when responses are shown
 - ~~Added text-to-speech (TTS) for affirmations using Web Speech API~~
