@@ -76,18 +76,6 @@ export default function Home() {
     setResponseContent(null);
   };
 
-  const emotionLabels = {
-    red: "Not Great",
-    yellow: "Nervous",
-    green: "Feeling Good",
-  };
-
-  const emotionDescriptions = {
-    red: "Angry, Sad, or Frustrated",
-    yellow: "Worried, Scared, or Unsure",
-    green: "Happy, Calm, or Excited",
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -145,53 +133,32 @@ export default function Home() {
 
         {!selectedEmotion ? (
           /* Traffic Light Selection */
-          <div className="flex flex-col items-center gap-8">
-            <Card className="p-8 max-w-md w-full">
-              <div className="flex flex-col gap-6">
-                <Button
-                  size="lg"
+          <div className="flex flex-col items-center">
+            <Card className="p-12 bg-card/50 backdrop-blur">
+              <div className="flex flex-col items-center gap-8">
+                {/* Red Light */}
+                <button
                   onClick={() => handleEmotionClick("red")}
-                  className="h-24 text-2xl font-bold bg-traffic-red hover:bg-traffic-red text-traffic-red-foreground hover-elevate active-elevate-2"
+                  className="w-32 h-32 rounded-full bg-red-500 hover:bg-red-600 active:bg-red-700 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-200 ring-4 ring-white/20"
                   data-testid="button-emotion-red"
-                >
-                  <div className="flex flex-col items-center gap-1">
-                    <AlertCircle className="w-8 h-8" />
-                    <span>{emotionLabels.red}</span>
-                    <span className="text-sm font-normal opacity-90">
-                      {emotionDescriptions.red}
-                    </span>
-                  </div>
-                </Button>
+                  aria-label="Red - Angry, Sad, or Frustrated"
+                />
 
-                <Button
-                  size="lg"
+                {/* Yellow Light */}
+                <button
                   onClick={() => handleEmotionClick("yellow")}
-                  className="h-24 text-2xl font-bold bg-traffic-yellow hover:bg-traffic-yellow text-traffic-yellow-foreground hover-elevate active-elevate-2"
+                  className="w-32 h-32 rounded-full bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-200 ring-4 ring-white/20"
                   data-testid="button-emotion-yellow"
-                >
-                  <div className="flex flex-col items-center gap-1">
-                    <Sparkles className="w-8 h-8" />
-                    <span>{emotionLabels.yellow}</span>
-                    <span className="text-sm font-normal opacity-90">
-                      {emotionDescriptions.yellow}
-                    </span>
-                  </div>
-                </Button>
+                  aria-label="Yellow - Worried, Scared, or Unsure"
+                />
 
-                <Button
-                  size="lg"
+                {/* Green Light */}
+                <button
                   onClick={() => handleEmotionClick("green")}
-                  className="h-24 text-2xl font-bold bg-traffic-green hover:bg-traffic-green text-traffic-green-foreground hover-elevate active-elevate-2"
+                  className="w-32 h-32 rounded-full bg-green-500 hover:bg-green-600 active:bg-green-700 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-200 ring-4 ring-white/20"
                   data-testid="button-emotion-green"
-                >
-                  <div className="flex flex-col items-center gap-1">
-                    <Heart className="w-8 h-8" />
-                    <span>{emotionLabels.green}</span>
-                    <span className="text-sm font-normal opacity-90">
-                      {emotionDescriptions.green}
-                    </span>
-                  </div>
-                </Button>
+                  aria-label="Green - Happy, Calm, or Excited"
+                />
               </div>
             </Card>
           </div>
