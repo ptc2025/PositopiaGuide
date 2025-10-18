@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { AudioPlayer } from "@/components/audio-player";
+import { CombinedAudioPlayer } from "@/components/combined-audio-player";
 import { Sparkles, Activity, Laugh } from "lucide-react";
 import type { ChildResponseContent } from "@shared/schema";
 
@@ -10,14 +10,17 @@ interface ResponseDisplayProps {
 export function ResponseDisplay({ content }: ResponseDisplayProps) {
   return (
     <div className="space-y-6">
-      {/* Audio Player */}
-      {content.audio && (
-        <div data-testid="section-audio">
-          <AudioPlayer audioFile={content.audio} />
+      {/* Combined Audio Player for music and affirmation */}
+      {(content.audio || content.affirmation) && (
+        <div data-testid="section-combined-audio">
+          <CombinedAudioPlayer 
+            audioFile={content.audio} 
+            affirmation={content.affirmation}
+          />
         </div>
       )}
 
-      {/* Affirmation */}
+      {/* Affirmation Text Display */}
       {content.affirmation && (
         <Card data-testid="card-affirmation">
           <CardHeader>
