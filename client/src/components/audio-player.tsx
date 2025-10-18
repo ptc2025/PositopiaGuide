@@ -42,12 +42,15 @@ export function AudioPlayer({ audioFile }: AudioPlayerProps) {
   }, [volume, isMuted]);
 
   const togglePlay = () => {
-    if (!audioRef.current) return;
+    if (!audioRef.current || !audioUrl) return;
 
     if (isPlaying) {
       audioRef.current.pause();
     } else {
-      audioRef.current.play();
+      audioRef.current.play().catch(err => {
+        console.error("Error playing audio:", err);
+        setIsPlaying(false);
+      });
     }
     setIsPlaying(!isPlaying);
   };
@@ -73,9 +76,12 @@ export function AudioPlayer({ audioFile }: AudioPlayerProps) {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
+  // Construct the proper URL for accessing the audio file through our objects endpoint
+  const audioUrl = audioFile.filePath ? `/objects${audioFile.filePath}` : '';
+
   return (
     <div className="bg-card border border-card-border rounded-lg p-6" data-testid="component-audio-player">
-      <audio ref={audioRef} src={audioFile.filePath} preload="metadata" />
+      <audio ref={audioRef} src={audioUrl} preload="metadata" />
 
       <div className="flex flex-col gap-4">
         <div className="text-center">
