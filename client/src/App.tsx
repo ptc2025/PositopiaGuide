@@ -9,6 +9,7 @@ import ProfileSelect from "@/pages/profile-select";
 import History from "@/pages/history";
 import Dashboard from "@/pages/dashboard";
 import Breathing from "@/pages/breathing";
+import Calendar from "@/pages/calendar";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/history" component={History} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/breathing" component={Breathing} />
+      <Route path="/calendar" component={Calendar} />
       <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>

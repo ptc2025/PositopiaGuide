@@ -504,6 +504,60 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
     }
   });
 
+  // ===== Calendar Insights =====
+  app.post("/api/calendar-insights", async (req, res) => {
+    try {
+      const { childId, checkIns } = req.body;
+
+      if (!childId || !checkIns || checkIns.length === 0) {
+        return res.status(400).json({ error: "Child ID and check-ins are required" });
+      }
+
+      // Prepare data for AI analysis
+      const recentCheckIns = checkIns.slice(-30); // Last 30 check-ins for analysis
+      const emotionCounts = { red: 0, yellow: 0, green: 0 };
+      const dayOfWeekPatterns: Record<string, number[]> = {};
+      
+      recentCheckIns.forEach((checkIn: any) => {
+        emotionCounts[checkIn.detectedEmotion as keyof typeof emotionCounts]++;
+        const day = new Date(checkIn.createdAt).getDay();
+        if (!dayOfWeekPatterns[day]) dayOfWeekPatterns[day] = [0, 0, 0];
+        dayOfWeekPatterns[day][checkIn.detectedEmotion === 'red' ? 0 : checkIn.detectedEmotion === 'yellow' ? 1 : 2]++;
+      });
+
+      // Use OpenAI to generate insights
+      const aiResponse = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `You are a caring child psychologist assistant analyzing emotional patterns for children. 
+            Provide warm, supportive insights that are both helpful for parents/teachers and age-appropriate if shared with the child.
+            Focus on patterns, positive trends, and gentle suggestions. Keep the response under 150 words.`
+          },
+          {
+            role: "user",
+            content: `Analyze these emotional check-in patterns for a child:
+            - Total check-ins (last 30 days): ${recentCheckIns.length}
+            - Red (difficult) days: ${emotionCounts.red}
+            - Yellow (unsure) days: ${emotionCounts.yellow}  
+            - Green (good) days: ${emotionCounts.green}
+            - Recent trend: ${recentCheckIns.slice(-7).map((c: any) => c.detectedEmotion).join(', ')}
+            
+            Provide supportive insights about their emotional journey and any patterns you notice.`
+          }
+        ]
+      });
+
+      const insights = aiResponse.choices[0].message.content || "Unable to generate insights at this time.";
+
+      res.json({ insights });
+    } catch (error) {
+      console.error("Error generating calendar insights:", error);
+      res.status(500).json({ error: "Failed to generate insights" });
+    }
+  });
+
   // ===== AI Emotion Analysis =====
   app.post("/api/analyze-emotion", async (req, res) => {
     try {

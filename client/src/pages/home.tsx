@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Loader2, Sparkles, Heart, AlertCircle, Settings, User, History, BarChart3, Wind } from "lucide-react";
+import { Loader2, Sparkles, Heart, AlertCircle, Settings, User, History, BarChart3, Wind, Calendar } from "lucide-react";
 import type { EmotionCategory, ChildResponseContent } from "@shared/schema";
 import { AudioPlayer } from "@/components/audio-player";
 import { ResponseDisplay } from "@/components/response-display";
@@ -90,6 +90,12 @@ export default function Home() {
               <Button variant="ghost" size="sm" data-testid="button-breathing-link">
                 <Wind className="w-4 h-4 mr-2" />
                 Breathe
+              </Button>
+            </Link>
+            <Link href="/calendar">
+              <Button variant="ghost" size="sm" data-testid="button-calendar-link">
+                <Calendar className="w-4 h-4 mr-2" />
+                Calendar
               </Button>
             </Link>
             <Link href="/history">
