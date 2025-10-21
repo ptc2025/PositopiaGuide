@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,9 +24,25 @@ interface DashboardStats {
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
-  const familyCode = localStorage.getItem("familyCode");
-  const selectedChildId = localStorage.getItem("selectedChildId");
-  const selectedChildName = localStorage.getItem("selectedChildName");
+  const [familyCode, setFamilyCode] = useState<string | null>(null);
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const [selectedChildName, setSelectedChildName] = useState<string>("");
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+
+  useEffect(() => {
+    const storedFamilyCode = localStorage.getItem("familyCode");
+    const storedChildId = localStorage.getItem("selectedChildId");
+    const storedChildName = localStorage.getItem("selectedChildName");
+    
+    if (!storedChildId || !storedFamilyCode) {
+      setLocation("/select-profile");
+    } else {
+      setFamilyCode(storedFamilyCode);
+      setSelectedChildId(storedChildId);
+      setSelectedChildName(storedChildName || "");
+      setIsAuthChecked(true);
+    }
+  }, [setLocation]);
 
   const { data: stats, isLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard", familyCode],
@@ -34,26 +51,15 @@ export default function Dashboard() {
       if (!response.ok) throw new Error("Failed to fetch dashboard data");
       return response.json();
     },
-    enabled: !!familyCode,
+    enabled: !!familyCode && isAuthChecked,
   });
 
-  // Check if user has selected a profile (consistent with other pages)
-  if (!selectedChildId || !familyCode) {
+  if (!isAuthChecked) {
     return (
       <div className="flex items-center justify-center min-h-screen p-4">
         <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>No Profile Selected</CardTitle>
-            <CardDescription>Please select a child profile first</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              onClick={() => setLocation("/select-profile")}
-              className="w-full"
-              data-testid="button-go-profile"
-            >
-              Select Profile
-            </Button>
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground">Loading...</p>
           </CardContent>
         </Card>
       </div>
