@@ -5,6 +5,15 @@ An interactive emotional learning web app for children based on the Positopia Wo
 
 ## Recent Changes (Oct 18, 2025)
 
+### Check-In Calendar & AI Insights
+- Implemented visual emotion calendar showing red/yellow/green days
+- Monthly view with emotion color coding for each day
+- Click on days to view detailed check-ins with timestamps
+- AI-powered insights analyze emotional patterns and trends
+- Monthly statistics track total check-ins and emotion distribution
+- Streak tracking for consecutive green (positive) days
+- Calendar accessible from main navigation
+
 ### UI Redesign - Abstract Traffic Light Interface
 - Redesigned emotion selection as pure circular colored buttons
 - Removed all text and descriptions for true abstract representation
@@ -114,6 +123,7 @@ An interactive emotional learning web app for children based on the Positopia Wo
 - `GET/POST /api/activities` - Activities CRUD
 - `GET/POST /api/jokes` - Jokes CRUD
 - `GET/POST /api/tts-settings` - TTS configuration CRUD
+- `POST /api/calendar-insights` - Generate AI insights from emotion patterns
 
 ### Child Profiles & Tracking
 - `GET /api/children?familyCode={code}` - Get children by family code
@@ -147,9 +157,11 @@ An interactive emotional learning web app for children based on the Positopia Wo
 - `client/src/pages/home.tsx` - Main traffic light interface
 - `client/src/pages/profile-select.tsx` - Child profile selection
 - `client/src/pages/history.tsx` - Individual emotion history
+- `client/src/pages/calendar.tsx` - Check-in calendar with insights
 - `client/src/pages/dashboard.tsx` - Family analytics dashboard
 - `client/src/pages/breathing.tsx` - Breathing exercises
 - `client/src/pages/admin.tsx` - Admin dashboard
 - `client/src/components/admin/audio-manager.tsx` - Audio upload & management
+- `client/src/components/check-in-calendar.tsx` - Calendar component
 - `design_guidelines.md` - UI/UX design specifications
 - `tailwind.config.ts` - Tailwind configuration with custom colors
