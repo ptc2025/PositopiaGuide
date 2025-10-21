@@ -24,6 +24,8 @@ interface DashboardStats {
 export default function Dashboard() {
   const [, setLocation] = useLocation();
   const familyCode = localStorage.getItem("familyCode");
+  const selectedChildId = localStorage.getItem("selectedChildId");
+  const selectedChildName = localStorage.getItem("selectedChildName");
 
   const { data: stats, isLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard", familyCode],
@@ -35,13 +37,14 @@ export default function Dashboard() {
     enabled: !!familyCode,
   });
 
-  if (!familyCode) {
+  // Check if user has selected a profile (consistent with other pages)
+  if (!selectedChildId || !familyCode) {
     return (
       <div className="flex items-center justify-center min-h-screen p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>No Family Code</CardTitle>
-            <CardDescription>Please select a profile first</CardDescription>
+            <CardTitle>No Profile Selected</CardTitle>
+            <CardDescription>Please select a child profile first</CardDescription>
           </CardHeader>
           <CardContent>
             <Button 
