@@ -3,9 +3,15 @@
 ## Overview
 An interactive emotional learning web app for children based on the Positopia World book featuring Dune the Bunny. Children use a traffic light interface (red/yellow/green buttons) to describe their feelings and receive AI-selected personalized responses including musical tracks, affirmations, activities, and jokes.
 
-## Recent Changes (Oct 18, 2025)
+## Recent Changes (Oct 21, 2025)
 
-### Check-In Calendar & AI Insights
+### Authentication Consistency Fix
+- Fixed dashboard authentication to be consistent with other pages
+- Dashboard now properly checks for both selectedChildId and familyCode
+- All pages accessible with same authentication token without re-authentication
+- Resolved issue where dashboard would redirect back to profile selection unnecessarily
+
+### Check-In Calendar & AI Insights (Oct 18, 2025)
 - Implemented visual emotion calendar showing red/yellow/green days
 - Monthly view with emotion color coding for each day
 - Click on days to view detailed check-ins with timestamps
