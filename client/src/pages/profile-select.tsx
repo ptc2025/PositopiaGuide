@@ -63,11 +63,6 @@ export default function ProfileSelect() {
     }
     localStorage.setItem("selectedChildId", child.id);
     localStorage.setItem("selectedChildName", child.name);
-    console.log("Profile selected, localStorage:", {
-      familyCode: localStorage.getItem("familyCode"),
-      childId: child.id,
-      childName: child.name
-    });
     setLocation("/");
   };
 
@@ -85,7 +80,6 @@ export default function ProfileSelect() {
     if (familyCodeInput.trim()) {
       localStorage.setItem("familyCode", familyCodeInput.trim());
       setFamilyCode(familyCodeInput.trim()); // Update component state
-      console.log("Family code set in localStorage:", familyCodeInput.trim());
       queryClient.invalidateQueries({ queryKey: ["/api/children"] });
     }
   };

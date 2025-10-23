@@ -6,8 +6,10 @@ An interactive emotional learning web app for children based on the Positopia Wo
 ## Recent Changes (Oct 21, 2025)
 
 ### Authentication Consistency Fix
-- Fixed dashboard authentication to be consistent with other pages
-- Dashboard now properly checks for both selectedChildId and familyCode
+- Fixed profile-select page to properly update component state when setting family code
+- Separated input field state from actual family code state to prevent UI issues
+- Dashboard now uses useEffect pattern consistent with other pages
+- Profile selection ensures family code is saved to localStorage when selecting a child
 - All pages accessible with same authentication token without re-authentication
 - Resolved issue where dashboard would redirect back to profile selection unnecessarily
 
