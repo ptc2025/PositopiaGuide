@@ -86,16 +86,18 @@ export default function ProfileSelect() {
 
   if (!familyCode) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen storybook-background flex items-center justify-center px-4 relative">
+        <div className="cloud cloud1"></div>
+        <div className="cloud cloud2"></div>
+        <Card className="w-full max-w-md storybook-card relative z-10">
           <CardHeader>
             <div className="flex justify-center mb-4">
               <img src={duneImage} alt="Dune the Bunny" className="w-24 h-auto" />
             </div>
-            <CardTitle className="text-center text-2xl">Welcome to Positopia!</CardTitle>
+            <CardTitle className="text-center child-text-large">Welcome to Positopia!</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-center text-muted-foreground">
+            <p className="text-center child-text-medium text-muted-foreground">
               Enter your family code to get started
             </p>
             <div>
@@ -108,7 +110,7 @@ export default function ProfileSelect() {
                 data-testid="input-family-code"
               />
             </div>
-            <Button onClick={handleSetFamilyCode} className="w-full" data-testid="button-continue">
+            <Button onClick={handleSetFamilyCode} className="w-full child-text-medium" size="lg" data-testid="button-continue">
               Continue
             </Button>
           </CardContent>
@@ -118,16 +120,18 @@ export default function ProfileSelect() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="min-h-screen storybook-background relative">
+      <div className="cloud cloud1"></div>
+      <div className="cloud cloud2"></div>
+      <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-6">
             <img src={duneImage} alt="Dune the Bunny" className="w-24 h-auto" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2" data-testid="text-profile-title">
+          <h1 className="child-text-giant text-foreground mb-2" data-testid="text-profile-title">
             Who's Checking In?
           </h1>
-          <p className="text-muted-foreground">Select your profile or create a new one</p>
+          <p className="child-text-medium text-muted-foreground">Select your profile or create a new one</p>
         </div>
 
         {isLoading ? (
@@ -146,10 +150,10 @@ export default function ProfileSelect() {
                   className={`h-auto flex-col gap-3 py-6 ${colorConfig.hover}`}
                   data-testid={`button-select-child-${child.id}`}
                 >
-                  <div className={`w-16 h-16 rounded-full ${colorConfig.bg} flex items-center justify-center`}>
-                    <User className="w-8 h-8 text-white" />
+                  <div className={`w-20 h-20 rounded-full ${colorConfig.bg} flex items-center justify-center`}>
+                    <User className="w-10 h-10 text-white" />
                   </div>
-                  <span className="text-lg font-medium">{child.name}</span>
+                  <span className="child-text-medium font-medium">{child.name}</span>
                 </Button>
               );
             })}

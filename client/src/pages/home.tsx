@@ -149,32 +149,26 @@ export default function Home() {
                 {/* Red Light */}
                 <button
                   onClick={() => handleEmotionClick("red")}
-                  className="traffic-light-button red flex items-center justify-center"
+                  className="traffic-light-button red"
                   data-testid="button-emotion-red"
                   aria-label="Red - Angry, Sad, or Frustrated"
-                >
-                  <span className="text-4xl">😟</span>
-                </button>
+                />
 
                 {/* Yellow Light */}
                 <button
                   onClick={() => handleEmotionClick("yellow")}
-                  className="traffic-light-button yellow flex items-center justify-center"
+                  className="traffic-light-button yellow"
                   data-testid="button-emotion-yellow"
                   aria-label="Yellow - Worried, Scared, or Unsure"
-                >
-                  <span className="text-4xl">😐</span>
-                </button>
+                />
 
                 {/* Green Light */}
                 <button
                   onClick={() => handleEmotionClick("green")}
-                  className="traffic-light-button green flex items-center justify-center"
+                  className="traffic-light-button green"
                   data-testid="button-emotion-green"
                   aria-label="Green - Happy, Calm, or Excited"
-                >
-                  <span className="text-4xl">😊</span>
-                </button>
+                />
               </div>
               <div className="traffic-light-pole"></div>
             </div>
@@ -206,7 +200,7 @@ export default function Home() {
                   onClick={handleSubmit}
                   disabled={!feelingText.trim() || analyzeMutation.isPending}
                   size="lg"
-                  className="flex-1 child-text-medium h-16"
+                  className="flex-1 child-text-medium"
                   data-testid="button-submit-feeling"
                 >
                   {analyzeMutation.isPending ? (
@@ -222,7 +216,7 @@ export default function Home() {
                   onClick={handleReset}
                   variant="outline"
                   size="lg"
-                  className="child-text-medium h-16"
+                  className="child-text-medium"
                   disabled={analyzeMutation.isPending}
                   data-testid="button-cancel"
                 >
@@ -240,7 +234,7 @@ export default function Home() {
               <Button
                 onClick={handleReset}
                 size="lg"
-                className="child-text-medium h-16"
+                className="child-text-medium"
                 data-testid="button-reset"
               >
                 Check In Again

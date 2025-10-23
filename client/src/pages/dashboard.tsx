@@ -56,10 +56,12 @@ export default function Dashboard() {
 
   if (!isAuthChecked) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Card className="w-full max-w-md">
+      <div className="flex items-center justify-center min-h-screen storybook-background p-4 relative">
+        <div className="cloud cloud1"></div>
+        <div className="cloud cloud2"></div>
+        <Card className="w-full max-w-md storybook-card relative z-10">
           <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="child-text-medium text-muted-foreground">Loading...</p>
           </CardContent>
         </Card>
       </div>
@@ -81,8 +83,10 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen p-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen storybook-background p-4 relative">
+      <div className="cloud cloud1"></div>
+      <div className="cloud cloud2"></div>
+      <div className="max-w-6xl mx-auto relative z-10">
         <div className="flex items-center gap-4 mb-6">
           <Button
             variant="ghost"
@@ -93,8 +97,8 @@ export default function Dashboard() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Family Dashboard</h1>
-            <p className="text-muted-foreground">Track emotional well-being across all children</p>
+            <h1 className="child-text-giant font-bold">Family Dashboard</h1>
+            <p className="child-text-medium text-muted-foreground">Track emotional well-being across all children</p>
           </div>
         </div>
 
@@ -112,64 +116,64 @@ export default function Dashboard() {
           <div className="space-y-6">
             {/* Overview Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
+              <Card className="storybook-card">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                  <CardTitle className="child-text-body font-medium text-muted-foreground">
                     Total Check-ins
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-primary" />
-                    <p className="text-3xl font-bold" data-testid="text-total-checkins">
+                    <Calendar className="h-6 w-6 text-primary" />
+                    <p className="child-text-giant font-bold" data-testid="text-total-checkins">
                       {stats.totalCheckIns}
                     </p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="storybook-card">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                  <CardTitle className="child-text-body font-medium text-muted-foreground">
                     Feeling Good
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${emotionColors.green}`} />
-                    <p className="text-3xl font-bold" data-testid="text-green-count">
+                    <div className={`w-4 h-4 rounded-full ${emotionColors.green}`} />
+                    <p className="child-text-giant font-bold" data-testid="text-green-count">
                       {stats.emotionBreakdown.green}
                     </p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="storybook-card">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                  <CardTitle className="child-text-body font-medium text-muted-foreground">
                     Nervous
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${emotionColors.yellow}`} />
-                    <p className="text-3xl font-bold" data-testid="text-yellow-count">
+                    <div className={`w-4 h-4 rounded-full ${emotionColors.yellow}`} />
+                    <p className="child-text-giant font-bold" data-testid="text-yellow-count">
                       {stats.emotionBreakdown.yellow}
                     </p>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="storybook-card">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                  <CardTitle className="child-text-body font-medium text-muted-foreground">
                     Not Great
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${emotionColors.red}`} />
-                    <p className="text-3xl font-bold" data-testid="text-red-count">
+                    <div className={`w-4 h-4 rounded-full ${emotionColors.red}`} />
+                    <p className="child-text-giant font-bold" data-testid="text-red-count">
                       {stats.emotionBreakdown.red}
                     </p>
                   </div>
