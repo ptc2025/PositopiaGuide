@@ -13,7 +13,7 @@ import {
   Sparkles, Wind, Flower2, Waves, Heart, Timer, Settings,
   Star, Award, TrendingUp, Zap
 } from "lucide-react";
-import duneImage from "@assets/dune.webp";
+import duneImage from "@assets/dune-with-pinwheel-241x300_1760364974212.jpg";
 
 // Breathing patterns with more customization
 const BREATHING_PATTERNS = [
@@ -612,7 +612,7 @@ export default function Breathing() {
         <source src="/breathing-sound.mp3" type="audio/mpeg" />
       </audio>
 
-      <style jsx>{`
+      <style>{`
         @keyframes float-up {
           0% {
             transform: translateY(100vh) scale(0);
