@@ -37,16 +37,19 @@ export default function History() {
 
   if (!childId) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Card className="w-full max-w-md">
+      <div className="flex items-center justify-center min-h-screen storybook-background p-4 relative">
+        <div className="cloud cloud1"></div>
+        <div className="cloud cloud2"></div>
+        <Card className="w-full max-w-md storybook-card relative z-10">
           <CardHeader>
-            <CardTitle>No Profile Selected</CardTitle>
-            <CardDescription>Please select a child profile first</CardDescription>
+            <CardTitle className="child-text-large">No Profile Selected</CardTitle>
+            <CardDescription className="child-text-body">Please select a child profile first</CardDescription>
           </CardHeader>
           <CardContent>
             <Button 
               onClick={() => setLocation("/")}
-              className="w-full"
+              className="w-full child-text-medium"
+              size="lg"
               data-testid="button-go-home"
             >
               Go to Home
@@ -58,8 +61,10 @@ export default function History() {
   }
 
   return (
-    <div className="min-h-screen p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen storybook-background p-4 relative">
+      <div className="cloud cloud1"></div>
+      <div className="cloud cloud2"></div>
+      <div className="max-w-4xl mx-auto relative z-10">
         <div className="flex items-center gap-4 mb-6">
           <Button
             variant="ghost"
@@ -70,8 +75,8 @@ export default function History() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">{childName}'s Emotion History</h1>
-            <p className="text-muted-foreground">Track your emotional journey</p>
+            <h1 className="child-text-giant font-bold">{childName}'s Emotion History</h1>
+            <p className="child-text-medium text-muted-foreground">Track your emotional journey</p>
           </div>
         </div>
 
@@ -80,11 +85,11 @@ export default function History() {
             <p className="text-muted-foreground">Loading history...</p>
           </div>
         ) : checkIns.length === 0 ? (
-          <Card>
+          <Card className="storybook-card">
             <CardContent className="py-12 text-center">
               <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No emotion check-ins yet</p>
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="child-text-medium text-muted-foreground">No emotion check-ins yet</p>
+              <p className="child-text-body text-muted-foreground mt-2">
                 Start sharing your feelings to build your history!
               </p>
             </CardContent>
@@ -96,7 +101,7 @@ export default function History() {
               const date = new Date(checkIn.createdAt);
               
               return (
-                <Card key={checkIn.id} data-testid={`checkin-${checkIn.id}`}>
+                <Card key={checkIn.id} className="storybook-card" data-testid={`checkin-${checkIn.id}`}>
                   <CardHeader>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3">
