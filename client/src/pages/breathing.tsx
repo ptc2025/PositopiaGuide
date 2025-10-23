@@ -86,8 +86,10 @@ export default function Breathing() {
   const scale = 0.5 + (progress / 100) * 0.5;
 
   return (
-    <div className="min-h-screen p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen storybook-background p-4 relative">
+      <div className="cloud cloud1"></div>
+      <div className="cloud cloud2"></div>
+      <div className="max-w-4xl mx-auto relative z-10">
         <div className="flex items-center gap-4 mb-6">
           <Button
             variant="ghost"
@@ -98,8 +100,8 @@ export default function Breathing() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Breathing Exercises</h1>
-            <p className="text-muted-foreground">Calm your mind with guided breathing</p>
+            <h1 className="child-text-giant font-bold">Breathing Exercises</h1>
+            <p className="child-text-medium text-muted-foreground">Calm your mind with guided breathing</p>
           </div>
         </div>
 
@@ -107,21 +109,21 @@ export default function Breathing() {
           {BREATHING_EXERCISES.map((exercise) => (
             <Card
               key={exercise.id}
-              className={`cursor-pointer transition-all hover-elevate ${
+              className={`storybook-card cursor-pointer transition-all hover-elevate ${
                 selectedExercise.id === exercise.id ? "ring-2 ring-primary" : ""
               }`}
               onClick={() => handleExerciseChange(exercise)}
               data-testid={`exercise-${exercise.id}`}
             >
               <CardHeader>
-                <CardTitle className="text-lg">{exercise.name}</CardTitle>
-                <CardDescription className="text-sm">{exercise.description}</CardDescription>
+                <CardTitle className="child-text-medium">{exercise.name}</CardTitle>
+                <CardDescription className="child-text-body">{exercise.description}</CardDescription>
               </CardHeader>
             </Card>
           ))}
         </div>
 
-        <Card className="mb-6">
+        <Card className="storybook-card mb-6">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center justify-center py-12">
               <div
@@ -132,8 +134,8 @@ export default function Breathing() {
                 data-testid="breathing-circle"
               >
                 <div className="text-white text-center">
-                  <p className="text-2xl font-bold mb-2">{currentStep.phase}</p>
-                  <p className="text-lg">
+                  <p className="child-text-large font-bold mb-2">{currentStep.phase}</p>
+                  <p className="child-text-medium">
                     {Math.ceil(((currentStep.duration - (progress / 100) * currentStep.duration) / 1000))}s
                   </p>
                 </div>
@@ -171,12 +173,12 @@ export default function Breathing() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="storybook-card">
           <CardHeader>
-            <CardTitle>How to Use</CardTitle>
+            <CardTitle className="child-text-medium">How to Use</CardTitle>
           </CardHeader>
           <CardContent>
-            <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
+            <ol className="list-decimal list-inside space-y-2 child-text-body text-muted-foreground">
               <li>Choose a breathing exercise above</li>
               <li>Click "Start" to begin</li>
               <li>Follow the circle - breathe in when it grows, out when it shrinks</li>
