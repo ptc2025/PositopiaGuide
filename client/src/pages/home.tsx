@@ -77,8 +77,12 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="min-h-screen storybook-background relative">
+      {/* Animated Clouds */}
+      <div className="cloud cloud1"></div>
+      <div className="cloud cloud2"></div>
+      
+      <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
         {/* Header with Admin and Profile Switch */}
         <div className="flex justify-between mb-4">
           <Button variant="ghost" size="sm" onClick={handleChangeProfile} data-testid="button-change-profile">
@@ -129,10 +133,10 @@ export default function Home() {
               data-testid="img-dune-character"
             />
           </div>
-          <h1 className="text-4xl font-bold text-foreground mb-3" data-testid="text-app-title">
+          <h1 className="child-text-giant text-foreground mb-3" data-testid="text-app-title">
             Positopia Companion
           </h1>
-          <p className="text-xl text-muted-foreground" data-testid="text-app-subtitle">
+          <p className="child-text-large text-muted-foreground" data-testid="text-app-subtitle">
             How are you feeling today?
           </p>
         </div>
@@ -140,33 +144,40 @@ export default function Home() {
         {!selectedEmotion ? (
           /* Traffic Light Selection */
           <div className="flex flex-col items-center">
-            <Card className="p-12 bg-card/50 backdrop-blur">
-              <div className="flex flex-col items-center gap-8">
+            <div className="traffic-light-container">
+              <div className="flex flex-col items-center gap-4">
                 {/* Red Light */}
                 <button
                   onClick={() => handleEmotionClick("red")}
-                  className="w-32 h-32 rounded-full bg-red-500 hover:bg-red-600 active:bg-red-700 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-200 ring-4 ring-white/20"
+                  className="traffic-light-button red flex items-center justify-center"
                   data-testid="button-emotion-red"
                   aria-label="Red - Angry, Sad, or Frustrated"
-                />
+                >
+                  <span className="text-4xl">😟</span>
+                </button>
 
                 {/* Yellow Light */}
                 <button
                   onClick={() => handleEmotionClick("yellow")}
-                  className="w-32 h-32 rounded-full bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-200 ring-4 ring-white/20"
+                  className="traffic-light-button yellow flex items-center justify-center"
                   data-testid="button-emotion-yellow"
                   aria-label="Yellow - Worried, Scared, or Unsure"
-                />
+                >
+                  <span className="text-4xl">😐</span>
+                </button>
 
                 {/* Green Light */}
                 <button
                   onClick={() => handleEmotionClick("green")}
-                  className="w-32 h-32 rounded-full bg-green-500 hover:bg-green-600 active:bg-green-700 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-200 ring-4 ring-white/20"
+                  className="traffic-light-button green flex items-center justify-center"
                   data-testid="button-emotion-green"
                   aria-label="Green - Happy, Calm, or Excited"
-                />
+                >
+                  <span className="text-4xl">😊</span>
+                </button>
               </div>
-            </Card>
+              <div className="traffic-light-pole"></div>
+            </div>
           </div>
         ) : !responseContent ? (
           /* Feeling Input */
