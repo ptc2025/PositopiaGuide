@@ -29,6 +29,7 @@ const AVATAR_COLORS = [
 export default function ProfileSelect() {
   const [, setLocation] = useLocation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [familyCodeInput, setFamilyCodeInput] = useState(() => localStorage.getItem("familyCode") || "");
   const [familyCode, setFamilyCode] = useState(() => localStorage.getItem("familyCode") || "");
   const [newChildName, setNewChildName] = useState("");
   const [selectedColor, setSelectedColor] = useState(AVATAR_COLORS[0].value);
@@ -81,9 +82,10 @@ export default function ProfileSelect() {
   };
 
   const handleSetFamilyCode = () => {
-    if (familyCode.trim()) {
-      localStorage.setItem("familyCode", familyCode.trim());
-      console.log("Family code set in localStorage:", familyCode.trim());
+    if (familyCodeInput.trim()) {
+      localStorage.setItem("familyCode", familyCodeInput.trim());
+      setFamilyCode(familyCodeInput.trim()); // Update component state
+      console.log("Family code set in localStorage:", familyCodeInput.trim());
       queryClient.invalidateQueries({ queryKey: ["/api/children"] });
     }
   };
@@ -106,8 +108,8 @@ export default function ProfileSelect() {
               <Label htmlFor="familyCode">Family Code</Label>
               <Input
                 id="familyCode"
-                value={familyCode}
-                onChange={(e) => setFamilyCode(e.target.value)}
+                value={familyCodeInput}
+                onChange={(e) => setFamilyCodeInput(e.target.value)}
                 placeholder="Enter your family code"
                 data-testid="input-family-code"
               />
