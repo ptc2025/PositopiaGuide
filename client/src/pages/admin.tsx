@@ -12,16 +12,18 @@ import { Home } from "lucide-react";
 
 export default function Admin() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b border-border bg-card">
+    <div className="min-h-screen storybook-background relative">
+      <div className="cloud cloud1"></div>
+      <div className="cloud cloud2"></div>
+      <div className="border-b border-border bg-card/95 backdrop-blur-sm relative z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-foreground" data-testid="text-admin-title">
+            <h1 className="child-text-giant font-bold text-foreground" data-testid="text-admin-title">
               Admin Panel
             </h1>
             <Link href="/">
-              <Button variant="outline" data-testid="button-home">
-                <Home className="w-4 h-4 mr-2" />
+              <Button variant="outline" size="lg" data-testid="button-home">
+                <Home className="w-5 h-5 mr-2" />
                 Back to App
               </Button>
             </Link>
@@ -29,7 +31,7 @@ export default function Admin() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 relative z-10">
         <Tabs defaultValue="audio" className="w-full">
           <TabsList className="grid w-full grid-cols-5 mb-8" data-testid="tabs-admin">
             <TabsTrigger value="audio" className="flex items-center gap-2" data-testid="tab-audio">
