@@ -76,8 +76,10 @@ export default function Calendar() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="min-h-screen storybook-background relative">
+      <div className="cloud cloud1"></div>
+      <div className="cloud cloud2"></div>
+      <div className="container mx-auto px-4 py-8 max-w-6xl relative z-10">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
@@ -87,9 +89,9 @@ export default function Calendar() {
                 Back
               </Button>
             </Link>
-            <h1 className="text-3xl font-bold">Check-In Calendar</h1>
+            <h1 className="child-text-giant font-bold">Check-In Calendar</h1>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleChangeProfile}>
+          <Button variant="ghost" className="child-text-body" onClick={handleChangeProfile}>
             {selectedChildName}'s Calendar
           </Button>
         </div>
@@ -111,11 +113,11 @@ export default function Calendar() {
             {/* Side Panel */}
             <div className="space-y-6">
               {/* AI Insights */}
-              <Card>
+              <Card className="storybook-card">
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
+                  <CardTitle className="flex items-center justify-between child-text-medium">
                     <span className="flex items-center gap-2">
-                      <BrainCircuit className="w-5 h-5" />
+                      <BrainCircuit className="w-6 h-6" />
                       AI Insights
                     </span>
                     <Button
@@ -137,11 +139,11 @@ export default function Calendar() {
                 </CardHeader>
                 <CardContent>
                   {aiInsights ? (
-                    <div className="text-sm space-y-2">
+                    <div className="child-text-body space-y-2">
                       <p className="text-card-foreground">{aiInsights}</p>
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="child-text-body text-muted-foreground">
                       Click "Generate" to get AI-powered insights about {selectedChildName}'s emotional patterns.
                     </p>
                   )}
@@ -150,9 +152,9 @@ export default function Calendar() {
 
               {/* Selected Day Details */}
               {selectedDate && selectedDayCheckIns.length > 0 && (
-                <Card>
+                <Card className="storybook-card">
                   <CardHeader>
-                    <CardTitle className="text-lg">
+                    <CardTitle className="child-text-medium">
                       {format(selectedDate, 'MMMM d, yyyy')}
                     </CardTitle>
                   </CardHeader>
@@ -191,9 +193,9 @@ export default function Calendar() {
               )}
 
               {/* Summary Stats */}
-              <Card>
+              <Card className="storybook-card">
                 <CardHeader>
-                  <CardTitle className="text-lg">Overall Summary</CardTitle>
+                  <CardTitle className="child-text-medium">Overall Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
