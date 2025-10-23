@@ -22,15 +22,15 @@ export function ResponseDisplay({ content }: ResponseDisplayProps) {
 
       {/* Affirmation Text Display */}
       {content.affirmation && (
-        <Card data-testid="card-affirmation">
+        <Card className="storybook-card" data-testid="card-affirmation">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-accent" />
+            <CardTitle className="flex items-center gap-2 child-text-large">
+              <Sparkles className="w-8 h-8 text-accent" />
               <span>A Positive Thought for You</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xl text-card-foreground italic" data-testid="text-affirmation">
+            <p className="child-text-medium text-card-foreground italic" data-testid="text-affirmation">
               "{content.affirmation.text}"
             </p>
           </CardContent>
@@ -39,18 +39,18 @@ export function ResponseDisplay({ content }: ResponseDisplayProps) {
 
       {/* Activity */}
       {content.activity && (
-        <Card data-testid="card-activity">
+        <Card className="storybook-card" data-testid="card-activity">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="w-6 h-6 text-primary" />
+            <CardTitle className="flex items-center gap-2 child-text-large">
+              <Activity className="w-8 h-8 text-primary" />
               <span>Try This Activity</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <h4 className="font-semibold text-lg mb-2" data-testid="text-activity-title">
+            <h4 className="font-semibold child-text-medium mb-2" data-testid="text-activity-title">
               {content.activity.title}
             </h4>
-            <p className="text-card-foreground" data-testid="text-activity-description">
+            <p className="child-text-body text-card-foreground" data-testid="text-activity-description">
               {content.activity.description}
             </p>
           </CardContent>
@@ -59,15 +59,15 @@ export function ResponseDisplay({ content }: ResponseDisplayProps) {
 
       {/* Joke */}
       {content.joke && (
-        <Card data-testid="card-joke">
+        <Card className="storybook-card" data-testid="card-joke">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Laugh className="w-6 h-6 text-accent" />
+            <CardTitle className="flex items-center gap-2 child-text-large">
+              <Laugh className="w-8 h-8 text-accent" />
               <span>Here's Something Funny</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-lg text-card-foreground" data-testid="text-joke">
+            <p className="child-text-body text-card-foreground" data-testid="text-joke">
               {content.joke.text}
             </p>
           </CardContent>

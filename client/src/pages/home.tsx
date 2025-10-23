@@ -182,12 +182,12 @@ export default function Home() {
         ) : !responseContent ? (
           /* Feeling Input */
           <div className="max-w-2xl mx-auto">
-            <Card className="p-8">
+            <Card className="storybook-card p-8">
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-foreground mb-2" data-testid="text-prompt">
+                <h2 className="child-text-large text-foreground mb-2" data-testid="text-prompt">
                   Tell me what's going on...
                 </h2>
-                <p className="text-muted-foreground">
+                <p className="child-text-medium text-muted-foreground">
                   Share your feelings in your own words
                 </p>
               </div>
@@ -196,7 +196,7 @@ export default function Home() {
                 value={feelingText}
                 onChange={(e) => setFeelingText(e.target.value)}
                 placeholder="I feel..."
-                className="min-h-32 text-lg resize-none"
+                className="min-h-32 child-text-body resize-none"
                 disabled={analyzeMutation.isPending}
                 data-testid="input-feeling-text"
               />
@@ -206,7 +206,7 @@ export default function Home() {
                   onClick={handleSubmit}
                   disabled={!feelingText.trim() || analyzeMutation.isPending}
                   size="lg"
-                  className="flex-1 text-lg"
+                  className="flex-1 child-text-medium h-16"
                   data-testid="button-submit-feeling"
                 >
                   {analyzeMutation.isPending ? (
@@ -222,6 +222,7 @@ export default function Home() {
                   onClick={handleReset}
                   variant="outline"
                   size="lg"
+                  className="child-text-medium h-16"
                   disabled={analyzeMutation.isPending}
                   data-testid="button-cancel"
                 >
@@ -239,7 +240,7 @@ export default function Home() {
               <Button
                 onClick={handleReset}
                 size="lg"
-                className="text-lg"
+                className="child-text-medium h-16"
                 data-testid="button-reset"
               >
                 Check In Again
