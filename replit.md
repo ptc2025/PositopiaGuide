@@ -5,6 +5,18 @@ An interactive emotional learning web app for children based on the Positopia Wo
 
 ## Recent Changes (Oct 23, 2025)
 
+### Breathing Page Complete Overhaul
+- Redesigned with "Magical Breathing" title and Dune the Bunny as animated guide
+- Added 4 customizable breathing patterns: Calm & Easy, Box Breathing, Sleepy Time, Energy Boost
+- Implemented three-tab interface: Exercise, Customize, Progress
+- Added visual customization with 4 themes (Balloon, Flower, Ocean Wave, Butterfly)
+- Created adjustable speed controls (0.5x to 1.5x) for different age groups
+- Built achievement system with 5 milestone badges and session tracking
+- Added floating particle animations and progress ring visualization
+- Included sound toggle for audio breathing cues
+- Implemented session timer and cycle counter for progress tracking
+- Enhanced with instructional tooltips from Dune character guide
+
 ### Complete Children's Book Theme Implementation
 - Applied comprehensive storybook theme to all pages: Calendar, History, Breathing, Admin, and 404
 - All pages now have cartoon backyard background with animated floating clouds
