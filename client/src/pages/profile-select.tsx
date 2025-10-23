@@ -56,8 +56,17 @@ export default function ProfileSelect() {
   });
 
   const handleSelectChild = (child: Child) => {
+    // Ensure family code is also in localStorage when selecting a child
+    if (familyCode) {
+      localStorage.setItem("familyCode", familyCode);
+    }
     localStorage.setItem("selectedChildId", child.id);
     localStorage.setItem("selectedChildName", child.name);
+    console.log("Profile selected, localStorage:", {
+      familyCode: localStorage.getItem("familyCode"),
+      childId: child.id,
+      childName: child.name
+    });
     setLocation("/");
   };
 
@@ -74,6 +83,7 @@ export default function ProfileSelect() {
   const handleSetFamilyCode = () => {
     if (familyCode.trim()) {
       localStorage.setItem("familyCode", familyCode.trim());
+      console.log("Family code set in localStorage:", familyCode.trim());
       queryClient.invalidateQueries({ queryKey: ["/api/children"] });
     }
   };

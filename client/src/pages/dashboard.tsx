@@ -34,7 +34,14 @@ export default function Dashboard() {
     const storedChildId = localStorage.getItem("selectedChildId");
     const storedChildName = localStorage.getItem("selectedChildName");
     
+    console.log("Dashboard auth check:", { 
+      familyCode: storedFamilyCode, 
+      childId: storedChildId,
+      childName: storedChildName
+    });
+    
     if (!storedChildId || !storedFamilyCode) {
+      console.log("Missing auth, redirecting to profile select");
       setLocation("/select-profile");
     } else {
       setFamilyCode(storedFamilyCode);
