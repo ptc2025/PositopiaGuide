@@ -435,14 +435,10 @@ export class DatabaseStorage implements IStorage {
 
   // Parents
   async createParent(data: InsertParent): Promise<Parent> {
-    // Hash the PIN if provided
-    const hashedData = { ...data };
-    if ((data as any).pin) {
-      (hashedData as any).pin = await bcrypt.hash((data as any).pin, 10);
-    }
+    // Parents don't have their own PINs - they use family PIN
     const [parent] = await db.insert(parents).values({
-      ...hashedData,
-      role: (hashedData.role || 'parent') as UserRole
+      ...data,
+      role: (data.role || 'parent') as UserRole
     }).returning();
     return parent;
   }
@@ -460,26 +456,7 @@ export class DatabaseStorage implements IStorage {
     const parent = await this.getParentById(parentId);
     if (!parent) return false;
     
-    // Check if parent has their own PIN
-    const parentPin = (parent as any).pin;
-    if (parentPin) {
-      // If PIN is not hashed yet (legacy), compare directly then update
-      if (!parentPin.startsWith('$2')) {
-        if (parentPin === pin) {
-          // Update to hashed PIN for next time
-          const hash = await bcrypt.hash(pin, 10);
-          await db.update(parents)
-            .set({ pin: hash })
-            .where(eq(parents.id, parent.id));
-          return true;
-        }
-        return false;
-      }
-      // Compare with bcrypt hash
-      return await bcrypt.compare(pin, parentPin);
-    }
-    
-    // Fall back to family PIN if parent doesn't have their own
+    // Parents use family PIN for authentication
     const family = await this.getFamilyById(parent.familyId);
     if (!family) return false;
     
@@ -487,9 +464,12 @@ export class DatabaseStorage implements IStorage {
     const familyPin = (family as any).pin;
     if (!familyPin) return false;
     
+    // Handle legacy non-hashed PINs
     if (!familyPin.startsWith('$2')) {
       return familyPin === pin;
     }
+    
+    // Compare with bcrypt hash
     return await bcrypt.compare(pin, familyPin);
   }
 

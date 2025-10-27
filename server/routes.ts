@@ -3,7 +3,14 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { openai } from "./openai";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
-import { requireAuth, requireParentAuth, requireFamilyAuth } from "./auth";
+import { 
+  requireAuth, 
+  requireParentAuth, 
+  requireFamilyAuth,
+  rateLimitPIN,
+  trackFailedAttempt,
+  clearFailedAttempts
+} from "./auth";
 import {
   insertAudioFileSchema,
   insertAffirmationSchema,
@@ -696,6 +703,19 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
         familyId: family.id,
       });
       
+      // Establish session for the new family
+      req.session.familyId = family.id;
+      req.session.familyCode = family.familyCode;
+      req.session.parentId = parent.id;
+      req.session.userType = 'parent';
+      
+      // Save session before sending response
+      req.session.save((err) => {
+        if (err) {
+          console.error('Failed to save session:', err);
+        }
+      });
+      
       res.json({ family, parent });
     } catch (error) {
       console.error("Error creating family:", error);
@@ -710,9 +730,6 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
       if (!familyCode || !pin) {
         return res.status(400).json({ error: "Family code and PIN are required" });
       }
-      
-      // Import auth utilities at the top of the file if not already done
-      const { rateLimitPIN, trackFailedAttempt, clearFailedAttempts } = require('./auth');
       
       // Check rate limiting
       if (!rateLimitPIN(`family:${familyCode}`)) {
@@ -797,6 +814,65 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
     }
   });
 
+  app.post("/api/parents/login", async (req, res) => {
+    try {
+      const { familyName, pin } = req.body;
+      
+      if (!familyName || !pin) {
+        return res.status(400).json({ success: false, error: "Family name and PIN are required" });
+      }
+      
+      // Check rate limiting
+      if (!rateLimitPIN(`parent:${familyName}`)) {
+        return res.status(429).json({ success: false, error: "Too many failed attempts. Please try again later." });
+      }
+      
+      // Find family by name (family code)
+      const family = await storage.getFamilyByCode(familyName);
+      if (!family) {
+        trackFailedAttempt(`parent:${familyName}`);
+        return res.status(401).json({ success: false, error: "Invalid family name or PIN" });
+      }
+      
+      // Validate PIN
+      const isValid = await storage.validateFamilyPin(familyName, pin);
+      if (!isValid) {
+        trackFailedAttempt(`parent:${familyName}`);
+        return res.status(401).json({ success: false, error: "Invalid family name or PIN" });
+      }
+      
+      // Clear failed attempts on successful login
+      clearFailedAttempts(`parent:${familyName}`);
+      
+      // Get parent accounts for this family
+      const parents = await storage.getParentsByFamily(family.id);
+      if (parents.length === 0) {
+        return res.status(404).json({ success: false, error: "No parent account found" });
+      }
+      
+      // Use the first parent account (typically the admin)
+      const parent = parents[0];
+      
+      // Set up session for parent authentication
+      req.session.familyId = family.id;
+      req.session.familyCode = family.familyCode;
+      req.session.parentId = parent.id;
+      req.session.userType = 'parent';
+      
+      // Save session before sending response
+      req.session.save((err) => {
+        if (err) {
+          console.error('Failed to save session:', err);
+        }
+      });
+      
+      res.json({ success: true, family, parent });
+    } catch (error) {
+      console.error("Error logging in parent:", error);
+      res.status(500).json({ success: false, error: "Failed to login" });
+    }
+  });
+
   app.post("/api/parents/validate-pin", async (req, res) => {
     try {
       const { parentId, pin } = req.body;
@@ -804,9 +880,6 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
       if (!parentId || !pin) {
         return res.status(400).json({ error: "Parent ID and PIN are required" });
       }
-      
-      // Import auth utilities at the top of the file if not already done
-      const { rateLimitPIN, trackFailedAttempt, clearFailedAttempts } = require('./auth');
       
       // Check rate limiting
       if (!rateLimitPIN(`parent:${parentId}`)) {

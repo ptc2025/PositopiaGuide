@@ -76,19 +76,17 @@ export default function FamilySetup() {
       });
       const response: any = await res.json();
       
-      // Save family info to localStorage
-      localStorage.setItem("familyId", response.family.id);
-      localStorage.setItem("familyCode", response.family.familyCode);
-      localStorage.setItem("parentId", response.parent.id);
-      localStorage.setItem("userRole", "parent");
+      // Session is already established by the server
+      // Clear localStorage as we're using server sessions
+      localStorage.clear();
       
       toast({
         title: "Family Created!",
         description: "Your family account has been set up successfully"
       });
       
-      // Navigate to parent dashboard
-      setLocation("/parent-dashboard");
+      // Navigate to profile selection page
+      setLocation("/select-profile");
     } catch (error: any) {
       toast({
         title: "Error",
@@ -127,12 +125,11 @@ export default function FamilySetup() {
         return;
       }
       
-      // Save family info to localStorage
-      localStorage.setItem("familyId", response.family.id);
-      localStorage.setItem("familyCode", response.family.familyCode);
+      // Session is established by the server
+      // Clear localStorage as we're using server sessions
+      localStorage.clear();
       
-      // When joining a family (not parent login), always go to profile selection
-      localStorage.setItem("userRole", "child");
+      // Navigate to profile selection page
       setLocation("/select-profile");
       
       toast({
@@ -177,11 +174,9 @@ export default function FamilySetup() {
         return;
       }
       
-      // Save parent info to localStorage
-      localStorage.setItem("familyId", response.family.id);
-      localStorage.setItem("familyCode", response.family.familyCode);
-      localStorage.setItem("parentId", response.parent.id);
-      localStorage.setItem("userRole", "parent");
+      // Session is established by the server
+      // Clear localStorage as we're using server sessions
+      localStorage.clear();
       
       setIsParentDialogOpen(false);
       toast({

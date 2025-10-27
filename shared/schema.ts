@@ -27,7 +27,6 @@ export const parents = pgTable("parents", {
   familyId: varchar("family_id").notNull(),
   name: text("name").notNull(),
   email: text("email"), // Optional email for recovery
-  pin: text("pin"), // Optional PIN for parent-specific authentication (hashed in storage)
   role: text("role").notNull().$type<UserRole>().default("parent"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
