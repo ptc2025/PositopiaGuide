@@ -22,6 +22,11 @@ An interactive emotional learning web app for children based on the Positopia Wo
   - Required for apps behind reverse proxy (Replit's deployment infrastructure)
   - Enables secure cookies to work correctly in production HTTPS environments
   - Without this, sessions won't persist in published apps
+- **Session Save Race Condition Fix**: Fixed async session.save() timing issues
+  - All login endpoints now await session.save() before sending responses
+  - Ensures session data is persisted to database before client receives confirmation
+  - Fixed profile creation failures caused by unsaved session data in production
+  - Added session data logging for debugging
 
 ### Previous Changes (Oct 23, 2025)
 

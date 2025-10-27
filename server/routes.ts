@@ -749,13 +749,23 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
       req.session.parentId = parent.id;
       req.session.userType = 'parent';
       
-      // Save session before sending response
-      req.session.save((err) => {
-        if (err) {
-          console.error('[Family Creation] Failed to save session:', err);
-        } else {
-          console.log('[Family Creation] Session saved successfully');
-        }
+      // Save session before sending response - WAIT for it to complete
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error('[Family Creation] Failed to save session:', err);
+            reject(err);
+          } else {
+            console.log('[Family Creation] Session saved successfully');
+            console.log('[Family Creation] Session data:', {
+              familyId: req.session.familyId,
+              parentId: req.session.parentId,
+              userType: req.session.userType,
+              familyCode: req.session.familyCode
+            });
+            resolve();
+          }
+        });
       });
       
       console.log("[Family Creation] Success! Family ID:", family.id);
@@ -806,11 +816,17 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
         req.session.familyCode = family.familyCode;
         req.session.userType = 'family';
         
-        // Save session before sending response
-        req.session.save((err) => {
-          if (err) {
-            console.error('Failed to save session:', err);
-          }
+        // Save session before sending response - WAIT for it to complete
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err) => {
+            if (err) {
+              console.error('Failed to save session:', err);
+              reject(err);
+            } else {
+              console.log('Family PIN validation session saved successfully');
+              resolve();
+            }
+          });
         });
         
         const parents = await storage.getParentsByFamily(family.id);
@@ -956,11 +972,29 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
           req.session.familyId = parent.familyId;
           req.session.userType = 'parent';
           
-          // Save session before sending response
-          req.session.save((err) => {
-            if (err) {
-              console.error('Failed to save session:', err);
-            }
+          // Get family code for the session
+          const family = await storage.getFamilyById(parent.familyId);
+          if (family) {
+            req.session.familyCode = family.familyCode;
+          }
+          
+          // Save session before sending response - WAIT for it to complete
+          await new Promise<void>((resolve, reject) => {
+            req.session.save((err) => {
+              if (err) {
+                console.error('Failed to save session:', err);
+                reject(err);
+              } else {
+                console.log('Parent PIN validation session saved successfully');
+                console.log('Parent session data:', {
+                  parentId: req.session.parentId,
+                  familyId: req.session.familyId,
+                  familyCode: req.session.familyCode,
+                  userType: req.session.userType
+                });
+                resolve();
+              }
+            });
           });
           
           res.json({ isValid: true, parent });
