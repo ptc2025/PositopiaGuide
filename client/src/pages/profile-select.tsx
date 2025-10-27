@@ -70,15 +70,22 @@ export default function ProfileSelect() {
 
   const createChildMutation = useMutation({
     mutationFn: async (data: { name: string; avatarColor: string; familyCode: string; familyId: string }) => {
+      console.log("Mutation starting with data:", data);
       const res = await apiRequest("POST", "/api/children", data);
-      return res.json();
+      const result = await res.json();
+      console.log("Mutation result:", result);
+      return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/children?familyCode=${sessionData?.familyCode}`] });
+      console.log("Mutation success!");
+      queryClient.invalidateQueries({ queryKey: ["/api/children", sessionData?.familyCode] });
       setIsDialogOpen(false);
       setNewChildName("");
       setSelectedColor(AVATAR_COLORS[0].value);
     },
+    onError: (error) => {
+      console.error("Mutation error:", error);
+    }
   });
 
   const handleSelectChild = (child: Child) => {
@@ -88,12 +95,32 @@ export default function ProfileSelect() {
   };
 
   const handleCreateChild = () => {
+    console.log("Create child clicked", { 
+      name: newChildName.trim(), 
+      sessionData,
+      hasName: !!newChildName.trim(),
+      hasFamilyCode: !!sessionData?.familyCode,
+      hasFamilyId: !!sessionData?.familyId
+    });
+    
     if (newChildName.trim() && sessionData?.familyCode && sessionData?.familyId) {
+      console.log("Calling mutation with:", {
+        name: newChildName.trim(),
+        avatarColor: selectedColor,
+        familyCode: sessionData.familyCode,
+        familyId: sessionData.familyId,
+      });
       createChildMutation.mutate({
         name: newChildName.trim(),
         avatarColor: selectedColor,
         familyCode: sessionData.familyCode,
         familyId: sessionData.familyId,
+      });
+    } else {
+      console.error("Missing required data for child creation", {
+        hasName: !!newChildName.trim(),
+        hasFamilyCode: !!sessionData?.familyCode,
+        hasFamilyId: !!sessionData?.familyId
       });
     }
   };
