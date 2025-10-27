@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import type { Child, InsertChild, Gender } from "@shared/schema";
 import duneImage from "@assets/dune-with-pinwheel-241x300_1760364974212.jpg";
+import { checkSession } from "@/lib/auth";
 
 const AVATAR_COLORS = [
   "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", 
@@ -37,15 +38,30 @@ export default function ChildProfileEdit() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
-  const familyId = localStorage.getItem("familyId");
-  const familyCode = localStorage.getItem("familyCode");
+  const [sessionData, setSessionData] = useState<any>(null);
   const childId = localStorage.getItem("selectedChildId");
   
-  // Form state
+  // Check session and get family data
+  useEffect(() => {
+    checkSession().then((session) => {
+      console.log("Child Profile Edit - Session check:", session);
+      if (!session.authenticated || session.userType !== "parent") {
+        console.log("Child Profile Edit - Not authenticated as parent, redirecting");
+        setLocation("/family-setup");
+        return;
+      }
+      setSessionData(session);
+    }).catch((error) => {
+      console.error("Child Profile Edit - Session check error:", error);
+      setLocation("/family-setup");
+    });
+  }, [setLocation]);
+  
+  // Form state - initialize with session data once available
   const [formData, setFormData] = useState<Partial<InsertChild>>({
     name: "",
-    familyId: familyId || "",
-    familyCode: familyCode || "",
+    familyId: "",
+    familyCode: "",
     avatarColor: AVATAR_COLORS[0],
     gender: undefined,
     age: undefined,
@@ -54,6 +70,21 @@ export default function ChildProfileEdit() {
     favoriteAnimal: undefined,
     interests: []
   });
+  
+  // Update form data when session loads
+  useEffect(() => {
+    if (sessionData?.familyId && sessionData?.familyCode && !formData.familyId) {
+      console.log("Child Profile Edit - Setting family data from session:", {
+        familyId: sessionData.familyId,
+        familyCode: sessionData.familyCode
+      });
+      setFormData(prev => ({
+        ...prev,
+        familyId: sessionData.familyId,
+        familyCode: sessionData.familyCode
+      }));
+    }
+  }, [sessionData]);
   
   const [newInterest, setNewInterest] = useState("");
   
@@ -84,6 +115,7 @@ export default function ChildProfileEdit() {
   // Create/Update mutation
   const saveMutation = useMutation({
     mutationFn: async (data: Partial<InsertChild>) => {
+      console.log("Child Profile Edit - Saving with data:", data);
       if (childId) {
         const res = await apiRequest("PUT", `/api/children/${childId}`, data);
         return res.json();
@@ -92,8 +124,9 @@ export default function ChildProfileEdit() {
         return res.json();
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/children?familyCode=${familyCode}`] });
+    onSuccess: (result) => {
+      console.log("Child Profile Edit - Save successful:", result);
+      queryClient.invalidateQueries({ queryKey: ["/api/children", sessionData?.familyCode] });
       toast({
         title: childId ? "Profile Updated" : "Profile Created",
         description: "Child profile has been saved successfully"
@@ -101,6 +134,7 @@ export default function ChildProfileEdit() {
       setLocation("/parent-dashboard");
     },
     onError: (error: any) => {
+      console.error("Child Profile Edit - Save error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to save profile",

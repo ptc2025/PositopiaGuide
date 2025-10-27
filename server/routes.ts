@@ -381,6 +381,11 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
   app.get("/api/children", requireFamilyAuth, async (req, res) => {
     try {
       const { familyCode } = req.query;
+      console.log("[Get Children] Query familyCode:", familyCode);
+      console.log("[Get Children] Session:", {
+        familyId: req.session.familyId,
+        familyCode: req.session.familyCode
+      });
       
       // Require familyCode for data security
       if (!familyCode) {
@@ -388,20 +393,34 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
       }
       
       const childrenList = await storage.getChildrenByFamilyCode(familyCode as string);
+      console.log("[Get Children] Found", childrenList.length, "children");
+      console.log("[Get Children] Children:", childrenList.map(c => ({ id: c.id, name: c.name, familyCode: c.familyCode })));
+      
       res.json(childrenList);
     } catch (error) {
-      console.error("Error fetching children:", error);
+      console.error("[Get Children] Error:", error);
       res.status(500).json({ error: "Failed to fetch children" });
     }
   });
 
   app.post("/api/children", requireParentAuth, async (req, res) => {
     try {
+      console.log("[Create Child] Request body:", req.body);
+      console.log("[Create Child] Session data:", {
+        parentId: req.session.parentId,
+        familyId: req.session.familyId,
+        familyCode: req.session.familyCode
+      });
+      
       const data = insertChildSchema.parse(req.body);
+      console.log("[Create Child] Validated data:", data);
+      
       const child = await storage.createChild(data);
+      console.log("[Create Child] Created child:", child);
+      
       res.json(child);
     } catch (error) {
-      console.error("Error creating child:", error);
+      console.error("[Create Child] Error:", error);
       res.status(400).json({ error: "Invalid child data" });
     }
   });
