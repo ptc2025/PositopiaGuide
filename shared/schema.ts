@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, boolean, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -8,6 +8,29 @@ export type EmotionCategory = "red" | "yellow" | "green" | "general";
 
 // User roles
 export type UserRole = "parent" | "teacher" | "child";
+
+// Gender options for profiles
+export type Gender = "male" | "female" | "other" | "prefer_not_to_say";
+
+// Families table - manages family accounts with PIN authentication
+export const families = pgTable("families", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  familyCode: text("family_code").notNull().unique(), // Unique family identifier
+  familyName: text("family_name").notNull(),
+  pin: text("pin").notNull(), // 4-6 digit PIN for authentication
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Parents/Admin accounts table
+export const parents = pgTable("parents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  familyId: varchar("family_id").notNull(),
+  name: text("name").notNull(),
+  email: text("email"), // Optional email for recovery
+  role: text("role").notNull().$type<UserRole>().default("parent"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
 
 // Audio files table - stores uploaded audio tracks
 export const audioFiles = pgTable("audio_files", {
@@ -58,10 +81,46 @@ export const ttsSettings = pgTable("tts_settings", {
 // Children profiles table
 export const children = pgTable("children", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  familyId: varchar("family_id").notNull(),
   name: text("name").notNull(),
+  birthday: date("birthday"),
+  gender: text("gender").$type<Gender>(),
   age: integer("age"),
   avatarColor: text("avatar_color").notNull().default("blue"), // For visual identification
   familyCode: text("family_code").notNull(), // Simple code to group children (family or classroom)
+  favoriteColor: text("favorite_color"),
+  favoriteAnimal: text("favorite_animal"),
+  interests: text("interests").array(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Family Settings table - manages global family settings
+export const familySettings = pgTable("family_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  familyId: varchar("family_id").notNull().unique(),
+  allowChildrenLogin: boolean("allow_children_login").notNull().default(true),
+  requirePinForChild: boolean("require_pin_for_child").notNull().default(false),
+  themePreset: text("theme_preset").notNull().default("default"),
+  volumeLevel: integer("volume_level").notNull().default(80),
+  autoPlayMusic: boolean("auto_play_music").notNull().default(true),
+  enableTts: boolean("enable_tts").notNull().default(true),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Asset Distribution table - manages which profiles get which assets
+export const assetDistributions = pgTable("asset_distributions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  familyId: varchar("family_id").notNull(),
+  assetType: text("asset_type").notNull(), // "audio", "affirmation", "activity", "joke"
+  assetId: varchar("asset_id").notNull(), // ID of the specific asset
+  distributionType: text("distribution_type").notNull(), // "all", "include", "exclude"
+  profileIds: text("profile_ids").array(), // Array of child IDs for include/exclude
+  genderFilter: text("gender_filter").$type<Gender>(), // Optional gender-specific filter
+  ageMin: integer("age_min"), // Optional age range filter
+  ageMax: integer("age_max"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: varchar("created_by").notNull(), // Parent ID who created this rule
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -76,6 +135,26 @@ export const emotionCheckIns = pgTable("emotion_check_ins", {
 });
 
 // Insert schemas
+export const insertFamilySchema = createInsertSchema(families).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertParentSchema = createInsertSchema(parents).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertFamilySettingSchema = createInsertSchema(familySettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export const insertAssetDistributionSchema = createInsertSchema(assetDistributions).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertAudioFileSchema = createInsertSchema(audioFiles).omit({
   id: true,
   createdAt: true,
@@ -104,6 +183,7 @@ export const insertTtsSettingSchema = createInsertSchema(ttsSettings).omit({
 export const insertChildSchema = createInsertSchema(children).omit({
   id: true,
   createdAt: true,
+  isActive: true,
 });
 
 export const insertEmotionCheckInSchema = createInsertSchema(emotionCheckIns).omit({
@@ -112,6 +192,18 @@ export const insertEmotionCheckInSchema = createInsertSchema(emotionCheckIns).om
 });
 
 // Types
+export type Family = typeof families.$inferSelect;
+export type InsertFamily = z.infer<typeof insertFamilySchema>;
+
+export type Parent = typeof parents.$inferSelect;
+export type InsertParent = z.infer<typeof insertParentSchema>;
+
+export type FamilySetting = typeof familySettings.$inferSelect;
+export type InsertFamilySetting = z.infer<typeof insertFamilySettingSchema>;
+
+export type AssetDistribution = typeof assetDistributions.$inferSelect;
+export type InsertAssetDistribution = z.infer<typeof insertAssetDistributionSchema>;
+
 export type AudioFile = typeof audioFiles.$inferSelect;
 export type InsertAudioFile = z.infer<typeof insertAudioFileSchema>;
 

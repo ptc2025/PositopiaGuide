@@ -7,6 +7,10 @@ import {
   ttsSettings,
   children,
   emotionCheckIns,
+  families,
+  parents,
+  familySettings,
+  assetDistributions,
   type AudioFile,
   type InsertAudioFile,
   type Affirmation,
@@ -22,6 +26,14 @@ import {
   type EmotionCheckIn,
   type InsertEmotionCheckIn,
   type EmotionCategory,
+  type Family,
+  type InsertFamily,
+  type Parent,
+  type InsertParent,
+  type FamilySetting,
+  type InsertFamilySetting,
+  type AssetDistribution,
+  type InsertAssetDistribution,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, or, and, desc } from "drizzle-orm";
@@ -75,6 +87,29 @@ export interface IStorage {
   createCheckIn(data: InsertEmotionCheckIn): Promise<EmotionCheckIn>;
   getCheckInsByChild(childId: string, limit?: number): Promise<EmotionCheckIn[]>;
   getCheckInsByFamilyCode(familyCode: string, limit?: number): Promise<EmotionCheckIn[]>;
+  
+  // Families
+  createFamily(data: InsertFamily): Promise<Family>;
+  getFamilyByCode(familyCode: string): Promise<Family | undefined>;
+  getFamilyById(id: string): Promise<Family | undefined>;
+  validateFamilyPin(familyCode: string, pin: string): Promise<boolean>;
+  
+  // Parents
+  createParent(data: InsertParent): Promise<Parent>;
+  getParentsByFamily(familyId: string): Promise<Parent[]>;
+  getParentById(id: string): Promise<Parent | undefined>;
+  validateParentPin(parentId: string, pin: string): Promise<boolean>;
+  
+  // Family Settings
+  getFamilySettings(familyId: string): Promise<FamilySetting | undefined>;
+  upsertFamilySettings(familyId: string, data: InsertFamilySetting): Promise<FamilySetting>;
+  
+  // Asset Distributions
+  createAssetDistribution(data: InsertAssetDistribution): Promise<AssetDistribution>;
+  getAssetDistributions(familyId: string): Promise<AssetDistribution[]>;
+  updateAssetDistribution(id: string, data: Partial<InsertAssetDistribution>): Promise<AssetDistribution | undefined>;
+  deleteAssetDistribution(id: string): Promise<void>;
+  getFilteredAssetsForChild(childId: string, assetType: string): Promise<string[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -311,6 +346,138 @@ export class DatabaseStorage implements IStorage {
       .where(or(...childIds.map(id => eq(emotionCheckIns.childId, id))))
       .orderBy(desc(emotionCheckIns.createdAt))
       .limit(limit);
+  }
+
+  // Families
+  async createFamily(data: InsertFamily): Promise<Family> {
+    const [family] = await db.insert(families).values(data).returning();
+    return family;
+  }
+
+  async getFamilyByCode(familyCode: string): Promise<Family | undefined> {
+    const [family] = await db.select().from(families).where(eq(families.familyCode, familyCode));
+    return family || undefined;
+  }
+
+  async getFamilyById(id: string): Promise<Family | undefined> {
+    const [family] = await db.select().from(families).where(eq(families.id, id));
+    return family || undefined;
+  }
+
+  async validateFamilyPin(familyCode: string, pin: string): Promise<boolean> {
+    const family = await this.getFamilyByCode(familyCode);
+    if (!family) return false;
+    return family.pin === pin;
+  }
+
+  // Parents
+  async createParent(data: InsertParent): Promise<Parent> {
+    const [parent] = await db.insert(parents).values(data).returning();
+    return parent;
+  }
+
+  async getParentsByFamily(familyId: string): Promise<Parent[]> {
+    return await db.select().from(parents).where(eq(parents.familyId, familyId));
+  }
+
+  async getParentById(id: string): Promise<Parent | undefined> {
+    const [parent] = await db.select().from(parents).where(eq(parents.id, id));
+    return parent || undefined;
+  }
+
+  async validateParentPin(parentId: string, pin: string): Promise<boolean> {
+    const parent = await this.getParentById(parentId);
+    if (!parent) return false;
+    const family = await this.getFamilyById(parent.familyId);
+    if (!family) return false;
+    return family.pin === pin;
+  }
+
+  // Family Settings
+  async getFamilySettings(familyId: string): Promise<FamilySetting | undefined> {
+    const [settings] = await db.select().from(familySettings).where(eq(familySettings.familyId, familyId));
+    return settings || undefined;
+  }
+
+  async upsertFamilySettings(familyId: string, data: InsertFamilySetting): Promise<FamilySetting> {
+    const existing = await this.getFamilySettings(familyId);
+    if (existing) {
+      const [updated] = await db
+        .update(familySettings)
+        .set(data)
+        .where(eq(familySettings.familyId, familyId))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(familySettings).values({ ...data, familyId }).returning();
+      return created;
+    }
+  }
+
+  // Asset Distributions
+  async createAssetDistribution(data: InsertAssetDistribution): Promise<AssetDistribution> {
+    const [distribution] = await db.insert(assetDistributions).values(data).returning();
+    return distribution;
+  }
+
+  async getAssetDistributions(familyId: string): Promise<AssetDistribution[]> {
+    return await db.select().from(assetDistributions).where(eq(assetDistributions.familyId, familyId));
+  }
+
+  async updateAssetDistribution(id: string, data: Partial<InsertAssetDistribution>): Promise<AssetDistribution | undefined> {
+    const [distribution] = await db
+      .update(assetDistributions)
+      .set(data)
+      .where(eq(assetDistributions.id, id))
+      .returning();
+    return distribution || undefined;
+  }
+
+  async deleteAssetDistribution(id: string): Promise<void> {
+    await db.delete(assetDistributions).where(eq(assetDistributions.id, id));
+  }
+
+  async getFilteredAssetsForChild(childId: string, assetType: string): Promise<string[]> {
+    const child = await this.getChildById(childId);
+    if (!child) return [];
+
+    const family = await this.getFamilyById(child.familyId);
+    if (!family) return [];
+
+    const distributions = await this.getAssetDistributions(family.id);
+    const activeDistributions = distributions.filter(d => d.isActive && d.assetType === assetType);
+
+    const assetIds: Set<string> = new Set();
+
+    for (const dist of activeDistributions) {
+      // Check if this distribution applies to this child
+      let applies = false;
+
+      if (dist.distributionType === 'all') {
+        applies = true;
+      } else if (dist.distributionType === 'include' && dist.profileIds?.includes(childId)) {
+        applies = true;
+      } else if (dist.distributionType === 'exclude' && !dist.profileIds?.includes(childId)) {
+        applies = true;
+      }
+
+      // Check gender filter
+      if (applies && dist.genderFilter && child.gender && dist.genderFilter !== child.gender) {
+        applies = false;
+      }
+
+      // Check age filter
+      if (applies && child.age) {
+        if (dist.ageMin && child.age < dist.ageMin) applies = false;
+        if (dist.ageMax && child.age > dist.ageMax) applies = false;
+      }
+
+      if (applies) {
+        assetIds.add(dist.assetId);
+      }
+    }
+
+    return Array.from(assetIds);
   }
 }
 
