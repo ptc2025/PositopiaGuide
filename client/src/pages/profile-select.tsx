@@ -37,7 +37,9 @@ export default function ProfileSelect() {
   // Check for family authentication via session
   useEffect(() => {
     checkSession().then((session) => {
+      console.log("Profile Select - Session check:", session);
       if (!session.authenticated || !session.familyId) {
+        console.log("Profile Select - No auth or familyId, redirecting to family-setup");
         setLocation("/family-setup");
         return;
       }
@@ -45,8 +47,14 @@ export default function ProfileSelect() {
       
       // If parent is logged in, redirect to parent dashboard
       if (session.userType === "parent") {
+        console.log("Profile Select - Parent detected, redirecting to parent-dashboard");
         setLocation("/parent-dashboard");
+      } else {
+        console.log("Profile Select - Child/family session, staying on profile-select");
       }
+    }).catch((error) => {
+      console.error("Profile Select - Session check error:", error);
+      setLocation("/family-setup");
     });
   }, [setLocation]);
 

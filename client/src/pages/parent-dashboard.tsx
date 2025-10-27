@@ -22,15 +22,23 @@ export default function ParentDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [sessionData, setSessionData] = useState<any>(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   
   // Check for parent authentication via session
   useEffect(() => {
     checkSession().then((session) => {
+      console.log("Parent Dashboard - Session check:", session);
       if (!session.authenticated || session.userType !== "parent") {
+        console.log("Parent Dashboard - Redirecting to family-setup");
         setLocation("/family-setup");
         return;
       }
+      console.log("Parent Dashboard - Session valid, setting data");
       setSessionData(session);
+      setIsCheckingSession(false);
+    }).catch((error) => {
+      console.error("Parent Dashboard - Session check error:", error);
+      setLocation("/family-setup");
     });
   }, [setLocation]);
   
@@ -114,6 +122,20 @@ export default function ParentDashboard() {
     localStorage.setItem("selectedChildId", childId);
     setLocation("/calendar");
   };
+
+  // Show loading while checking session
+  if (isCheckingSession) {
+    return (
+      <div className="min-h-screen bg-gradient-children flex items-center justify-center">
+        <Card className="storybook-card p-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="child-text-body">Loading...</p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-children">

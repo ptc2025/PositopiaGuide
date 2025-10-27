@@ -18,6 +18,10 @@ An interactive emotional learning web app for children based on the Positopia Wo
 - Fixed redirect loop between family-setup → profile-select → parent-dashboard
 - Logout now properly clears server-side sessions via /api/logout endpoint
 - Installed missing `pg` package required for PostgreSQL session storage
+- **Trust Proxy Fix**: Added `app.set('trust proxy', 1)` for production secure cookies
+  - Required for apps behind reverse proxy (Replit's deployment infrastructure)
+  - Enables secure cookies to work correctly in production HTTPS environments
+  - Without this, sessions won't persist in published apps
 
 ### Previous Changes (Oct 23, 2025)
 
