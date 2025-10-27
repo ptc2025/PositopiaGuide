@@ -678,7 +678,10 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
   // ===== Family Management =====
   app.post("/api/families", async (req, res) => {
     try {
+      // Validate input using Zod schema
       const data = insertFamilySchema.parse(req.body);
+      
+      // The storage layer will handle PIN hashing
       const family = await storage.createFamily(data);
       
       // Create default parent account for the family
@@ -782,7 +785,10 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
 
   app.post("/api/parents", async (req, res) => {
     try {
+      // Validate input using Zod schema
       const data = insertParentSchema.parse(req.body);
+      
+      // The storage layer will handle PIN hashing if provided
       const parent = await storage.createParent(data);
       res.json(parent);
     } catch (error) {
