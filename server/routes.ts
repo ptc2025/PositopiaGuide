@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { openai } from "./openai";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { requireAuth, requireParentAuth, requireFamilyAuth } from "./auth";
 import {
   insertAudioFileSchema,
   insertAffirmationSchema,
@@ -334,7 +335,7 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
   });
 
   // ===== Children Profiles =====
-  app.get("/api/children", async (req, res) => {
+  app.get("/api/children", requireFamilyAuth, async (req, res) => {
     try {
       const { familyCode } = req.query;
       
@@ -351,7 +352,7 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
     }
   });
 
-  app.post("/api/children", async (req, res) => {
+  app.post("/api/children", requireParentAuth, async (req, res) => {
     try {
       const data = insertChildSchema.parse(req.body);
       const child = await storage.createChild(data);
@@ -362,7 +363,7 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
     }
   });
 
-  app.put("/api/children/:id", async (req, res) => {
+  app.put("/api/children/:id", requireParentAuth, async (req, res) => {
     try {
       const { id } = req.params;
       const data = insertChildSchema.partial().parse(req.body);
@@ -377,7 +378,7 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
     }
   });
 
-  app.delete("/api/children/:id", async (req, res) => {
+  app.delete("/api/children/:id", requireParentAuth, async (req, res) => {
     try {
       const { id } = req.params;
       await storage.deleteChild(id);
@@ -440,7 +441,7 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
   });
 
   // ===== Dashboard Analytics =====
-  app.get("/api/dashboard", async (req, res) => {
+  app.get("/api/dashboard", requireParentAuth, async (req, res) => {
     try {
       const { familyCode } = req.query;
       
@@ -809,7 +810,7 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
   });
 
   // ===== Family Settings =====
-  app.get("/api/family-settings/:familyId", async (req, res) => {
+  app.get("/api/family-settings/:familyId", requireParentAuth, async (req, res) => {
     try {
       const { familyId } = req.params;
       const settings = await storage.getFamilySettings(familyId);
@@ -842,7 +843,7 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
   });
 
   // ===== Asset Distribution Management =====
-  app.get("/api/asset-distributions/:familyId", async (req, res) => {
+  app.get("/api/asset-distributions/:familyId", requireParentAuth, async (req, res) => {
     try {
       const { familyId } = req.params;
       const distributions = await storage.getAssetDistributions(familyId);
@@ -853,7 +854,7 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
     }
   });
 
-  app.post("/api/asset-distributions", async (req, res) => {
+  app.post("/api/asset-distributions", requireParentAuth, async (req, res) => {
     try {
       const data = insertAssetDistributionSchema.parse(req.body);
       const distribution = await storage.createAssetDistribution(data);
