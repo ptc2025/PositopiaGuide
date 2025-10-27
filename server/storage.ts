@@ -37,6 +37,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, or, and, desc } from "drizzle-orm";
+import type { Gender, UserRole } from "@shared/schema";
 
 export interface IStorage {
   // Audio Files
@@ -131,14 +132,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAudio(data: InsertAudioFile): Promise<AudioFile> {
-    const [audio] = await db.insert(audioFiles).values(data).returning();
+    const [audio] = await db.insert(audioFiles).values({
+      ...data,
+      category: data.category as EmotionCategory
+    }).returning();
     return audio;
   }
 
   async updateAudio(id: string, data: Partial<InsertAudioFile>): Promise<AudioFile | undefined> {
+    const updateData: any = { ...data };
+    if (data.category) {
+      updateData.category = data.category as EmotionCategory;
+    }
     const [audio] = await db
       .update(audioFiles)
-      .set(data)
+      .set(updateData)
       .where(eq(audioFiles.id, id))
       .returning();
     return audio || undefined;
@@ -166,14 +174,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAffirmation(data: InsertAffirmation): Promise<Affirmation> {
-    const [affirmation] = await db.insert(affirmations).values(data).returning();
+    const [affirmation] = await db.insert(affirmations).values({
+      ...data,
+      category: data.category as EmotionCategory
+    }).returning();
     return affirmation;
   }
 
   async updateAffirmation(id: string, data: Partial<InsertAffirmation>): Promise<Affirmation | undefined> {
+    const updateData: any = { ...data };
+    if (data.category) {
+      updateData.category = data.category as EmotionCategory;
+    }
     const [affirmation] = await db
       .update(affirmations)
-      .set(data)
+      .set(updateData)
       .where(eq(affirmations.id, id))
       .returning();
     return affirmation || undefined;
@@ -201,14 +216,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createActivity(data: InsertActivity): Promise<Activity> {
-    const [activity] = await db.insert(activities).values(data).returning();
+    const [activity] = await db.insert(activities).values({
+      ...data,
+      category: data.category as EmotionCategory
+    }).returning();
     return activity;
   }
 
   async updateActivity(id: string, data: Partial<InsertActivity>): Promise<Activity | undefined> {
+    const updateData: any = { ...data };
+    if (data.category) {
+      updateData.category = data.category as EmotionCategory;
+    }
     const [activity] = await db
       .update(activities)
-      .set(data)
+      .set(updateData)
       .where(eq(activities.id, id))
       .returning();
     return activity || undefined;
@@ -236,14 +258,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createJoke(data: InsertJoke): Promise<Joke> {
-    const [joke] = await db.insert(jokes).values(data).returning();
+    const [joke] = await db.insert(jokes).values({
+      ...data,
+      category: data.category as EmotionCategory
+    }).returning();
     return joke;
   }
 
   async updateJoke(id: string, data: Partial<InsertJoke>): Promise<Joke | undefined> {
+    const updateData: any = { ...data };
+    if (data.category) {
+      updateData.category = data.category as EmotionCategory;
+    }
     const [joke] = await db
       .update(jokes)
-      .set(data)
+      .set(updateData)
       .where(eq(jokes.id, id))
       .returning();
     return joke || undefined;
@@ -302,14 +331,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createChild(data: InsertChild): Promise<Child> {
-    const [child] = await db.insert(children).values(data).returning();
+    const [child] = await db.insert(children).values({
+      ...data,
+      gender: data.gender as Gender | undefined
+    }).returning();
     return child;
   }
 
   async updateChild(id: string, data: Partial<InsertChild>): Promise<Child | undefined> {
+    const updateData: any = { ...data };
+    if (data.gender) {
+      updateData.gender = data.gender as Gender;
+    }
     const [child] = await db
       .update(children)
-      .set(data)
+      .set(updateData)
       .where(eq(children.id, id))
       .returning();
     return child || undefined;
@@ -321,7 +357,11 @@ export class DatabaseStorage implements IStorage {
 
   // Emotion Check-Ins
   async createCheckIn(data: InsertEmotionCheckIn): Promise<EmotionCheckIn> {
-    const [checkIn] = await db.insert(emotionCheckIns).values(data).returning();
+    const [checkIn] = await db.insert(emotionCheckIns).values({
+      ...data,
+      emotionCategory: data.emotionCategory as EmotionCategory,
+      detectedEmotion: data.detectedEmotion as EmotionCategory
+    }).returning();
     return checkIn;
   }
 
@@ -372,7 +412,10 @@ export class DatabaseStorage implements IStorage {
 
   // Parents
   async createParent(data: InsertParent): Promise<Parent> {
-    const [parent] = await db.insert(parents).values(data).returning();
+    const [parent] = await db.insert(parents).values({
+      ...data,
+      role: (data.role || 'parent') as UserRole
+    }).returning();
     return parent;
   }
 
@@ -416,7 +459,10 @@ export class DatabaseStorage implements IStorage {
 
   // Asset Distributions
   async createAssetDistribution(data: InsertAssetDistribution): Promise<AssetDistribution> {
-    const [distribution] = await db.insert(assetDistributions).values(data).returning();
+    const [distribution] = await db.insert(assetDistributions).values({
+      ...data,
+      genderFilter: data.genderFilter as Gender | undefined
+    }).returning();
     return distribution;
   }
 
@@ -425,9 +471,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateAssetDistribution(id: string, data: Partial<InsertAssetDistribution>): Promise<AssetDistribution | undefined> {
+    const updateData: any = { ...data };
+    if (data.genderFilter) {
+      updateData.genderFilter = data.genderFilter as Gender;
+    }
     const [distribution] = await db
       .update(assetDistributions)
-      .set(data)
+      .set(updateData)
       .where(eq(assetDistributions.id, id))
       .returning();
     return distribution || undefined;

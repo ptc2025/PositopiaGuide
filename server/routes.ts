@@ -11,6 +11,10 @@ import {
   insertTtsSettingSchema,
   insertChildSchema,
   insertEmotionCheckInSchema,
+  insertFamilySchema,
+  insertParentSchema,
+  insertFamilySettingSchema,
+  insertAssetDistributionSchema,
   type EmotionCategory,
   type ChildResponseContent,
 } from "@shared/schema";
@@ -631,6 +635,210 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
     } catch (error) {
       console.error("Error analyzing emotion:", error);
       res.status(500).json({ error: "Failed to analyze emotion" });
+    }
+  });
+
+  // ===== Family Management =====
+  app.post("/api/families", async (req, res) => {
+    try {
+      const data = insertFamilySchema.parse(req.body);
+      const family = await storage.createFamily(data);
+      
+      // Create default parent account for the family
+      const parent = await storage.createParent({
+        familyId: family.id,
+        name: data.familyName + " Admin",
+        role: "parent" as any,
+      });
+      
+      // Create default family settings
+      await storage.upsertFamilySettings(family.id, {
+        familyId: family.id,
+      });
+      
+      res.json({ family, parent });
+    } catch (error) {
+      console.error("Error creating family:", error);
+      res.status(400).json({ error: "Failed to create family" });
+    }
+  });
+
+  app.post("/api/families/validate-pin", async (req, res) => {
+    try {
+      const { familyCode, pin } = req.body;
+      
+      if (!familyCode || !pin) {
+        return res.status(400).json({ error: "Family code and PIN are required" });
+      }
+      
+      const isValid = await storage.validateFamilyPin(familyCode, pin);
+      const family = await storage.getFamilyByCode(familyCode);
+      
+      if (isValid && family) {
+        const parents = await storage.getParentsByFamily(family.id);
+        res.json({ isValid: true, family, parents });
+      } else {
+        res.json({ isValid: false });
+      }
+    } catch (error) {
+      console.error("Error validating PIN:", error);
+      res.status(500).json({ error: "Failed to validate PIN" });
+    }
+  });
+
+  app.get("/api/families/:familyCode", async (req, res) => {
+    try {
+      const { familyCode } = req.params;
+      const family = await storage.getFamilyByCode(familyCode);
+      
+      if (!family) {
+        return res.status(404).json({ error: "Family not found" });
+      }
+      
+      res.json(family);
+    } catch (error) {
+      console.error("Error fetching family:", error);
+      res.status(500).json({ error: "Failed to fetch family" });
+    }
+  });
+
+  // ===== Parent Management =====
+  app.get("/api/parents/:familyId", async (req, res) => {
+    try {
+      const { familyId } = req.params;
+      const parents = await storage.getParentsByFamily(familyId);
+      res.json(parents);
+    } catch (error) {
+      console.error("Error fetching parents:", error);
+      res.status(500).json({ error: "Failed to fetch parents" });
+    }
+  });
+
+  app.post("/api/parents", async (req, res) => {
+    try {
+      const data = insertParentSchema.parse(req.body);
+      const parent = await storage.createParent(data);
+      res.json(parent);
+    } catch (error) {
+      console.error("Error creating parent:", error);
+      res.status(400).json({ error: "Failed to create parent" });
+    }
+  });
+
+  app.post("/api/parents/validate-pin", async (req, res) => {
+    try {
+      const { parentId, pin } = req.body;
+      
+      if (!parentId || !pin) {
+        return res.status(400).json({ error: "Parent ID and PIN are required" });
+      }
+      
+      const isValid = await storage.validateParentPin(parentId, pin);
+      
+      if (isValid) {
+        const parent = await storage.getParentById(parentId);
+        res.json({ isValid: true, parent });
+      } else {
+        res.json({ isValid: false });
+      }
+    } catch (error) {
+      console.error("Error validating parent PIN:", error);
+      res.status(500).json({ error: "Failed to validate PIN" });
+    }
+  });
+
+  // ===== Family Settings =====
+  app.get("/api/family-settings/:familyId", async (req, res) => {
+    try {
+      const { familyId } = req.params;
+      const settings = await storage.getFamilySettings(familyId);
+      
+      if (!settings) {
+        // Create default settings if none exist
+        const newSettings = await storage.upsertFamilySettings(familyId, {
+          familyId,
+        });
+        return res.json(newSettings);
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching family settings:", error);
+      res.status(500).json({ error: "Failed to fetch settings" });
+    }
+  });
+
+  app.put("/api/family-settings/:familyId", async (req, res) => {
+    try {
+      const { familyId } = req.params;
+      const data = insertFamilySettingSchema.parse(req.body);
+      const settings = await storage.upsertFamilySettings(familyId, data);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error updating family settings:", error);
+      res.status(400).json({ error: "Failed to update settings" });
+    }
+  });
+
+  // ===== Asset Distribution Management =====
+  app.get("/api/asset-distributions/:familyId", async (req, res) => {
+    try {
+      const { familyId } = req.params;
+      const distributions = await storage.getAssetDistributions(familyId);
+      res.json(distributions);
+    } catch (error) {
+      console.error("Error fetching distributions:", error);
+      res.status(500).json({ error: "Failed to fetch distributions" });
+    }
+  });
+
+  app.post("/api/asset-distributions", async (req, res) => {
+    try {
+      const data = insertAssetDistributionSchema.parse(req.body);
+      const distribution = await storage.createAssetDistribution(data);
+      res.json(distribution);
+    } catch (error) {
+      console.error("Error creating distribution:", error);
+      res.status(400).json({ error: "Failed to create distribution" });
+    }
+  });
+
+  app.put("/api/asset-distributions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      const distribution = await storage.updateAssetDistribution(id, data);
+      
+      if (!distribution) {
+        return res.status(404).json({ error: "Distribution not found" });
+      }
+      
+      res.json(distribution);
+    } catch (error) {
+      console.error("Error updating distribution:", error);
+      res.status(400).json({ error: "Failed to update distribution" });
+    }
+  });
+
+  app.delete("/api/asset-distributions/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteAssetDistribution(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting distribution:", error);
+      res.status(500).json({ error: "Failed to delete distribution" });
+    }
+  });
+
+  app.get("/api/asset-distributions/child/:childId/:assetType", async (req, res) => {
+    try {
+      const { childId, assetType } = req.params;
+      const assetIds = await storage.getFilteredAssetsForChild(childId, assetType);
+      res.json({ assetIds });
+    } catch (error) {
+      console.error("Error fetching child assets:", error);
+      res.status(500).json({ error: "Failed to fetch child assets" });
     }
   });
 
