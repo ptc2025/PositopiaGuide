@@ -671,10 +671,39 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
         return res.status(400).json({ error: "Family code and PIN are required" });
       }
       
+      // Import auth utilities at the top of the file if not already done
+      const { rateLimitPIN, trackFailedAttempt, clearFailedAttempts } = require('./auth');
+      
+      // Check rate limiting
+      if (!rateLimitPIN(`family:${familyCode}`)) {
+        return res.status(429).json({ error: "Too many failed attempts. Please try again later." });
+      }
+      
       const isValid = await storage.validateFamilyPin(familyCode, pin);
+      
+      if (!isValid) {
+        trackFailedAttempt(`family:${familyCode}`);
+        return res.status(401).json({ valid: false, error: "Invalid PIN" });
+      }
+      
+      // Clear failed attempts on successful login
+      clearFailedAttempts(`family:${familyCode}`);
+      
       const family = await storage.getFamilyByCode(familyCode);
       
-      if (isValid && family) {
+      if (family) {
+        // Set up session for family authentication
+        req.session.familyId = family.id;
+        req.session.familyCode = family.familyCode;
+        req.session.userType = 'family';
+        
+        // Save session before sending response
+        req.session.save((err) => {
+          if (err) {
+            console.error('Failed to save session:', err);
+          }
+        });
+        
         const parents = await storage.getParentsByFamily(family.id);
         res.json({ isValid: true, family, parents });
       } else {
@@ -733,11 +762,43 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
         return res.status(400).json({ error: "Parent ID and PIN are required" });
       }
       
+      // Import auth utilities at the top of the file if not already done
+      const { rateLimitPIN, trackFailedAttempt, clearFailedAttempts } = require('./auth');
+      
+      // Check rate limiting
+      if (!rateLimitPIN(`parent:${parentId}`)) {
+        return res.status(429).json({ error: "Too many failed attempts. Please try again later." });
+      }
+      
       const isValid = await storage.validateParentPin(parentId, pin);
+      
+      if (!isValid) {
+        trackFailedAttempt(`parent:${parentId}`);
+        return res.status(401).json({ valid: false, error: "Invalid PIN" });
+      }
+      
+      // Clear failed attempts on successful login
+      clearFailedAttempts(`parent:${parentId}`);
       
       if (isValid) {
         const parent = await storage.getParentById(parentId);
-        res.json({ isValid: true, parent });
+        if (parent) {
+          // Set up session for parent authentication
+          req.session.parentId = parent.id;
+          req.session.familyId = parent.familyId;
+          req.session.userType = 'parent';
+          
+          // Save session before sending response
+          req.session.save((err) => {
+            if (err) {
+              console.error('Failed to save session:', err);
+            }
+          });
+          
+          res.json({ isValid: true, parent });
+        } else {
+          res.json({ isValid: false });
+        }
       } else {
         res.json({ isValid: false });
       }
