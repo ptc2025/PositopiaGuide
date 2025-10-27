@@ -682,14 +682,48 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
     }
   });
 
+  // Debug endpoint to check database connection
+  app.get("/api/health", async (req, res) => {
+    try {
+      // Try a simple database query
+      const result = await storage.getAllAudio();
+      res.json({ 
+        status: "ok", 
+        database: "connected",
+        environment: process.env.NODE_ENV,
+        hasSessionSecret: !!process.env.SESSION_SECRET,
+        audioCount: result.length
+      });
+    } catch (error: any) {
+      console.error("[Health Check] Database error:", error);
+      res.status(500).json({ 
+        status: "error", 
+        database: "disconnected",
+        error: error?.message 
+      });
+    }
+  });
+
   // ===== Family Management =====
   app.post("/api/families", async (req, res) => {
     try {
-      console.log("[Family Creation] Starting family creation with data:", req.body);
+      console.log("[Family Creation] Starting family creation");
+      console.log("[Family Creation] Request body:", JSON.stringify(req.body, null, 2));
+      console.log("[Family Creation] Environment:", process.env.NODE_ENV);
       
       // Validate input using Zod schema
-      const data = insertFamilySchema.parse(req.body);
-      console.log("[Family Creation] Input validated");
+      let data;
+      try {
+        data = insertFamilySchema.parse(req.body);
+        console.log("[Family Creation] Input validated successfully");
+      } catch (validationError: any) {
+        console.error("[Family Creation] Validation error:", validationError);
+        console.error("[Family Creation] Validation errors:", validationError?.errors);
+        return res.status(400).json({ 
+          error: "Validation failed",
+          details: validationError?.errors || validationError?.message
+        });
+      }
       
       // The storage layer will handle PIN hashing
       const family = await storage.createFamily(data);

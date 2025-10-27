@@ -69,12 +69,21 @@ export default function FamilySetup() {
     
     setIsLoading(true);
     try {
+      console.log("[Frontend] Sending family creation request:", {
+        familyName,
+        familyCode,
+        pinLength: newPin.length
+      });
+      
       const res = await apiRequest("POST", "/api/families", {
         familyName,
         familyCode,
         pin: newPin
       });
+      
+      console.log("[Frontend] Response status:", res.status);
       const response: any = await res.json();
+      console.log("[Frontend] Response body:", response);
       
       // Session is already established by the server
       // Clear localStorage as we're using server sessions
@@ -88,9 +97,18 @@ export default function FamilySetup() {
       // Navigate to profile selection page
       setLocation("/select-profile");
     } catch (error: any) {
+      console.error("[Frontend] Family creation error:", error);
+      
+      // Try to get more error details
+      let errorMessage = error.message || "Failed to create family";
+      if (error.details) {
+        console.error("[Frontend] Error details:", error.details);
+        errorMessage += `: ${JSON.stringify(error.details)}`;
+      }
+      
       toast({
         title: "Error",
-        description: error.message || "Failed to create family",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
