@@ -38,6 +38,7 @@ import {
 import { db } from "./db";
 import { eq, or, and, desc } from "drizzle-orm";
 import type { Gender, UserRole } from "@shared/schema";
+import * as bcrypt from "bcryptjs";
 
 export interface IStorage {
   // Audio Files
@@ -390,7 +391,14 @@ export class DatabaseStorage implements IStorage {
 
   // Families
   async createFamily(data: InsertFamily): Promise<Family> {
-    const [family] = await db.insert(families).values(data).returning();
+    // Hash the PIN before storing (type cast needed since schema still expects pinHash)
+    const hashedData = {
+      ...data,
+      pinHash: await bcrypt.hash((data as any).pin || (data as any).pinHash, 10)
+    };
+    // Remove plain PIN field if it exists
+    delete (hashedData as any).pin;
+    const [family] = await db.insert(families).values(hashedData as any).returning();
     return family;
   }
 
@@ -407,14 +415,35 @@ export class DatabaseStorage implements IStorage {
   async validateFamilyPin(familyCode: string, pin: string): Promise<boolean> {
     const family = await this.getFamilyByCode(familyCode);
     if (!family) return false;
-    return family.pin === pin;
+    // Compare with hashed PIN (handle both old 'pin' field and new 'pinHash' field)
+    const hashedPin = (family as any).pinHash || (family as any).pin;
+    // If the PIN is not hashed yet (legacy), compare directly then update to hash
+    if (hashedPin && !hashedPin.startsWith('$2')) {
+      if (hashedPin === pin) {
+        // Update to hashed PIN for next time
+        const hash = await bcrypt.hash(pin, 10);
+        await db.update(families)
+          .set({ pinHash: hash } as any)
+          .where(eq(families.id, family.id));
+        return true;
+      }
+      return false;
+    }
+    // Compare with bcrypt hash
+    return await bcrypt.compare(pin, hashedPin);
   }
 
   // Parents
   async createParent(data: InsertParent): Promise<Parent> {
+    // Hash the PIN if provided
+    const hashedData = { ...data };
+    if ((data as any).pin) {
+      (hashedData as any).pinHash = await bcrypt.hash((data as any).pin, 10);
+      delete (hashedData as any).pin;
+    }
     const [parent] = await db.insert(parents).values({
-      ...data,
-      role: (data.role || 'parent') as UserRole
+      ...hashedData,
+      role: (hashedData.role || 'parent') as UserRole
     }).returning();
     return parent;
   }
@@ -431,9 +460,36 @@ export class DatabaseStorage implements IStorage {
   async validateParentPin(parentId: string, pin: string): Promise<boolean> {
     const parent = await this.getParentById(parentId);
     if (!parent) return false;
+    
+    // Check if parent has their own PIN
+    const parentPin = (parent as any).pinHash || (parent as any).pin;
+    if (parentPin) {
+      // If PIN is not hashed yet (legacy), compare directly then update
+      if (!parentPin.startsWith('$2')) {
+        if (parentPin === pin) {
+          // Update to hashed PIN for next time
+          const hash = await bcrypt.hash(pin, 10);
+          await db.update(parents)
+            .set({ pinHash: hash } as any)
+            .where(eq(parents.id, parent.id));
+          return true;
+        }
+        return false;
+      }
+      // Compare with bcrypt hash
+      return await bcrypt.compare(pin, parentPin);
+    }
+    
+    // Fall back to family PIN if parent doesn't have their own
     const family = await this.getFamilyById(parent.familyId);
     if (!family) return false;
-    return family.pin === pin;
+    
+    // Use the same bcrypt comparison logic for family PIN
+    const familyPin = (family as any).pinHash || (family as any).pin;
+    if (familyPin && !familyPin.startsWith('$2')) {
+      return familyPin === pin;
+    }
+    return await bcrypt.compare(pin, familyPin);
   }
 
   // Family Settings
