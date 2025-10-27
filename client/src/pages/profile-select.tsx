@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, User } from "lucide-react";
+import { Plus, User, ArrowLeft, UserPlus } from "lucide-react";
 import type { Child } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import duneImage from "@assets/dune-with-pinwheel-241x300_1760364974212.jpg";
@@ -29,10 +29,24 @@ const AVATAR_COLORS = [
 export default function ProfileSelect() {
   const [, setLocation] = useLocation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [familyCodeInput, setFamilyCodeInput] = useState(() => localStorage.getItem("familyCode") || "");
-  const [familyCode, setFamilyCode] = useState(() => localStorage.getItem("familyCode") || "");
   const [newChildName, setNewChildName] = useState("");
   const [selectedColor, setSelectedColor] = useState(AVATAR_COLORS[0].value);
+  
+  // Check for family authentication
+  const familyId = localStorage.getItem("familyId");
+  const familyCode = localStorage.getItem("familyCode");
+  const userRole = localStorage.getItem("userRole");
+  
+  // Redirect if no family is set up
+  useEffect(() => {
+    if (!familyId || !familyCode) {
+      setLocation("/family-setup");
+    }
+    // If parent is logged in, redirect to parent dashboard
+    if (userRole === "parent") {
+      setLocation("/parent-dashboard");
+    }
+  }, [familyId, familyCode, userRole, setLocation]);
 
   const { data: children = [], isLoading } = useQuery<Child[]>({
     queryKey: ["/api/children", familyCode],
@@ -45,11 +59,12 @@ export default function ProfileSelect() {
   });
 
   const createChildMutation = useMutation({
-    mutationFn: async (data: { name: string; avatarColor: string; familyCode: string }) => {
-      return await apiRequest("POST", "/api/children", data);
+    mutationFn: async (data: { name: string; avatarColor: string; familyCode: string; familyId: string }) => {
+      const res = await apiRequest("POST", "/api/children", data);
+      return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/children", familyCode] });
+      queryClient.invalidateQueries({ queryKey: [`/api/children?familyCode=${familyCode}`] });
       setIsDialogOpen(false);
       setNewChildName("");
       setSelectedColor(AVATAR_COLORS[0].value);
@@ -57,21 +72,18 @@ export default function ProfileSelect() {
   });
 
   const handleSelectChild = (child: Child) => {
-    // Ensure family code is also in localStorage when selecting a child
-    if (familyCode) {
-      localStorage.setItem("familyCode", familyCode);
-    }
     localStorage.setItem("selectedChildId", child.id);
     localStorage.setItem("selectedChildName", child.name);
     setLocation("/");
   };
 
   const handleCreateChild = () => {
-    if (newChildName.trim() && familyCode) {
+    if (newChildName.trim() && familyCode && familyId) {
       createChildMutation.mutate({
         name: newChildName.trim(),
         avatarColor: selectedColor,
         familyCode,
+        familyId,
       });
     }
   };

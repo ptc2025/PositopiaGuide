@@ -10,13 +10,19 @@ import History from "@/pages/history";
 import Dashboard from "@/pages/dashboard";
 import Breathing from "@/pages/breathing";
 import Calendar from "@/pages/calendar";
+import FamilySetup from "@/pages/family-setup";
+import ParentDashboard from "@/pages/parent-dashboard";
+import ChildProfileEdit from "@/pages/child-profile-edit";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/family-setup" component={FamilySetup} />
       <Route path="/select-profile" component={ProfileSelect} />
+      <Route path="/parent-dashboard" component={ParentDashboard} />
+      <Route path="/child-profile-edit" component={ChildProfileEdit} />
       <Route path="/history" component={History} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/breathing" component={Breathing} />
