@@ -13,6 +13,11 @@ An interactive emotional learning web app for children based on the Positopia Wo
 - Sessions now survive deployments and server restarts
 - Added comprehensive error logging for family creation debugging
 - Family creation now properly establishes sessions in both dev and production
+- **Session-Based Authentication**: All pages now use checkSession() instead of localStorage
+- Updated parent-dashboard to use session data instead of localStorage
+- Fixed redirect loop between family-setup → profile-select → parent-dashboard
+- Logout now properly clears server-side sessions via /api/logout endpoint
+- Installed missing `pg` package required for PostgreSQL session storage
 
 ### Previous Changes (Oct 23, 2025)
 

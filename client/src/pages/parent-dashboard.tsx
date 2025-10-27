@@ -16,55 +16,56 @@ import {
 } from "lucide-react";
 import type { Child, Family, FamilySetting, AssetDistribution } from "@shared/schema";
 import duneImage from "@assets/dune-with-pinwheel-241x300_1760364974212.jpg";
+import { checkSession } from "@/lib/auth";
 
 export default function ParentDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [sessionData, setSessionData] = useState<any>(null);
   
-  const familyId = localStorage.getItem("familyId");
-  const familyCode = localStorage.getItem("familyCode");
-  const parentId = localStorage.getItem("parentId");
-  
-  // Redirect if not authenticated as parent
+  // Check for parent authentication via session
   useEffect(() => {
-    const userRole = localStorage.getItem("userRole");
-    if (!familyId || !parentId || userRole !== "parent") {
-      setLocation("/family-setup");
-    }
-  }, [familyId, parentId, setLocation]);
+    checkSession().then((session) => {
+      if (!session.authenticated || session.userType !== "parent") {
+        setLocation("/family-setup");
+        return;
+      }
+      setSessionData(session);
+    });
+  }, [setLocation]);
   
   // Fetch family data
   const { data: family } = useQuery<Family>({
-    queryKey: [`/api/families/${familyCode}`],
-    enabled: !!familyCode
+    queryKey: [`/api/families/${sessionData?.familyCode}`],
+    enabled: !!sessionData?.familyCode
   });
   
   // Fetch children profiles
   const { data: children = [] } = useQuery<Child[]>({
-    queryKey: [`/api/children?familyCode=${familyCode}`],
-    enabled: !!familyCode
+    queryKey: [`/api/children?familyCode=${sessionData?.familyCode}`],
+    enabled: !!sessionData?.familyCode
   });
   
   // Fetch family settings
   const { data: settings } = useQuery<FamilySetting>({
-    queryKey: [`/api/family-settings/${familyId}`],
-    enabled: !!familyId
+    queryKey: [`/api/family-settings/${sessionData?.familyId}`],
+    enabled: !!sessionData?.familyId
   });
   
   // Fetch asset distributions
   const { data: distributions = [] } = useQuery<AssetDistribution[]>({
-    queryKey: [`/api/asset-distributions/${familyId}`],
-    enabled: !!familyId
+    queryKey: [`/api/asset-distributions/${sessionData?.familyId}`],
+    enabled: !!sessionData?.familyId
   });
   
   // Update settings mutation
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: Partial<FamilySetting>) => {
-      const res = await apiRequest("PUT", `/api/family-settings/${familyId}`, data);
+      const res = await apiRequest("PUT", `/api/family-settings/${sessionData?.familyId}`, data);
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/family-settings/${familyId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/family-settings/${sessionData?.familyId}`] });
       toast({
         title: "Settings Updated",
         description: "Family settings have been saved"
@@ -79,7 +80,7 @@ export default function ParentDashboard() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/children?familyCode=${familyCode}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/children?familyCode=${sessionData?.familyCode}`] });
       toast({
         title: "Profile Deleted",
         description: "Child profile has been removed"
@@ -87,9 +88,17 @@ export default function ParentDashboard() {
     }
   });
   
-  const handleLogout = () => {
-    localStorage.clear();
-    setLocation("/family-setup");
+  const handleLogout = async () => {
+    try {
+      await apiRequest("POST", "/api/logout", {});
+      localStorage.clear();
+      setLocation("/family-setup");
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Clear local data and redirect anyway
+      localStorage.clear();
+      setLocation("/family-setup");
+    }
   };
   
   const handleSettingToggle = (setting: keyof FamilySetting, value: boolean) => {
@@ -138,7 +147,7 @@ export default function ParentDashboard() {
                   Parent Dashboard
                 </CardTitle>
                 <CardDescription className="child-text-body">
-                  {family?.familyName} • Code: {familyCode}
+                  {family?.familyName} • Code: {sessionData?.familyCode}
                 </CardDescription>
               </div>
             </div>
