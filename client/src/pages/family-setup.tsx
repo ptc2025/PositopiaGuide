@@ -5,9 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Users, Lock, UserPlus, Home } from "lucide-react";
+import { Users, Lock, UserPlus, Home, Shield } from "lucide-react";
 import duneImage from "@assets/dune-with-pinwheel-241x300_1760364974212.jpg";
 
 export default function FamilySetup() {
@@ -23,6 +31,11 @@ export default function FamilySetup() {
   // Join Family State
   const [joinFamilyCode, setJoinFamilyCode] = useState("");
   const [joinPin, setJoinPin] = useState("");
+  
+  // Parent Login State
+  const [isParentDialogOpen, setIsParentDialogOpen] = useState(false);
+  const [parentFamilyName, setParentFamilyName] = useState("");
+  const [parentPin, setParentPin] = useState("");
   
   const [isLoading, setIsLoading] = useState(false);
 
@@ -118,17 +131,9 @@ export default function FamilySetup() {
       localStorage.setItem("familyId", response.family.id);
       localStorage.setItem("familyCode", response.family.familyCode);
       
-      // Check if there are parent accounts
-      if (response.parents && response.parents.length > 0) {
-        // User is likely a parent logging in
-        localStorage.setItem("parentId", response.parents[0].id);
-        localStorage.setItem("userRole", "parent");
-        setLocation("/parent-dashboard");
-      } else {
-        // User is a child, go to profile selection
-        localStorage.setItem("userRole", "child");
-        setLocation("/select-profile");
-      }
+      // When joining a family (not parent login), always go to profile selection
+      localStorage.setItem("userRole", "child");
+      setLocation("/select-profile");
       
       toast({
         title: "Welcome Back!",
@@ -138,6 +143,58 @@ export default function FamilySetup() {
       toast({
         title: "Error",
         description: error.message || "Failed to validate PIN",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleParentLogin = async () => {
+    if (!parentFamilyName || !parentPin) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter family name and PIN",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      const res = await apiRequest("POST", "/api/parents/login", {
+        familyName: parentFamilyName,
+        pin: parentPin
+      });
+      const response: any = await res.json();
+      
+      if (!response.success) {
+        toast({
+          title: "Invalid Credentials",
+          description: response.error || "Family name or PIN is incorrect",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Save parent info to localStorage
+      localStorage.setItem("familyId", response.family.id);
+      localStorage.setItem("familyCode", response.family.familyCode);
+      localStorage.setItem("parentId", response.parent.id);
+      localStorage.setItem("userRole", "parent");
+      
+      setIsParentDialogOpen(false);
+      toast({
+        title: "Welcome Back!",
+        description: "Successfully logged into parent dashboard"
+      });
+      
+      // Navigate to parent dashboard
+      setLocation("/parent-dashboard");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to login",
         variant: "destructive"
       });
     } finally {
@@ -329,8 +386,84 @@ export default function FamilySetup() {
               </Button>
             </TabsContent>
           </Tabs>
+          
+          {/* Parent Login Section */}
+          <div className="border-t pt-6 mt-6">
+            <div className="text-center">
+              <p className="child-text-body text-muted-foreground mb-3">
+                Are you a parent? Access your dashboard here
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => setIsParentDialogOpen(true)}
+                className="gap-2"
+                data-testid="button-parent-login"
+              >
+                <Shield className="w-4 h-4" />
+                Parent Login
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
+      
+      {/* Parent Login Dialog */}
+      <Dialog open={isParentDialogOpen} onOpenChange={setIsParentDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Parent Login</DialogTitle>
+            <DialogDescription>
+              Enter your family name and PIN to access the parent dashboard
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="parent-family" className="child-text-body">
+                Family Name
+              </Label>
+              <Input
+                id="parent-family"
+                placeholder="Enter your family name"
+                value={parentFamilyName}
+                onChange={(e) => setParentFamilyName(e.target.value)}
+                data-testid="input-parent-family-name"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="parent-pin" className="child-text-body">
+                PIN
+              </Label>
+              <Input
+                id="parent-pin"
+                type="password"
+                placeholder="Enter your PIN"
+                value={parentPin}
+                onChange={(e) => setParentPin(e.target.value)}
+                maxLength={6}
+                data-testid="input-parent-pin"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsParentDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleParentLogin}
+              disabled={isLoading}
+              data-testid="button-submit-parent-login"
+            >
+              {isLoading ? "Logging in..." : "Login as Parent"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

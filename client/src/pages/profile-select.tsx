@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, User, ArrowLeft, UserPlus } from "lucide-react";
+import { Plus, User, ArrowLeft, UserPlus, Shield } from "lucide-react";
 import type { Child } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import duneImage from "@assets/dune-with-pinwheel-241x300_1760364974212.jpg";
@@ -88,53 +88,29 @@ export default function ProfileSelect() {
     }
   };
 
-  const handleSetFamilyCode = () => {
-    if (familyCodeInput.trim()) {
-      localStorage.setItem("familyCode", familyCodeInput.trim());
-      setFamilyCode(familyCodeInput.trim()); // Update component state
-      queryClient.invalidateQueries({ queryKey: ["/api/children"] });
-    }
-  };
-
-  if (!familyCode) {
-    return (
-      <div className="min-h-screen storybook-background flex items-center justify-center px-4 relative">
-        <div className="cloud cloud1"></div>
-        <div className="cloud cloud2"></div>
-        <Card className="w-full max-w-md storybook-card relative z-10">
-          <CardHeader>
-            <div className="flex justify-center mb-4">
-              <img src={duneImage} alt="Dune the Bunny" className="w-24 h-auto" />
-            </div>
-            <CardTitle className="text-center child-text-large">Welcome to Positopia!</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-center child-text-medium text-muted-foreground">
-              Enter your family code to get started
-            </p>
-            <div>
-              <Label htmlFor="familyCode">Family Code</Label>
-              <Input
-                id="familyCode"
-                value={familyCodeInput}
-                onChange={(e) => setFamilyCodeInput(e.target.value)}
-                placeholder="Enter your family code"
-                data-testid="input-family-code"
-              />
-            </div>
-            <Button onClick={handleSetFamilyCode} className="w-full child-text-medium" size="lg" data-testid="button-continue">
-              Continue
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+  // If no family code (this should be handled by redirect already but just in case)
+  if (!familyCode || !familyId) {
+    return null;
   }
 
   return (
     <div className="min-h-screen storybook-background relative">
       <div className="cloud cloud1"></div>
       <div className="cloud cloud2"></div>
+      
+      {/* Parent Access Button */}
+      <div className="absolute top-4 right-4 z-20">
+        <Button
+          variant="outline"
+          onClick={() => setLocation("/family-setup")}
+          className="gap-2"
+          data-testid="button-parent-access"
+        >
+          <Shield className="w-4 h-4" />
+          Parent Access
+        </Button>
+      </div>
+      
       <div className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-6">
