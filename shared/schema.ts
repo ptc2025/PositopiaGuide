@@ -17,7 +17,7 @@ export const families = pgTable("families", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   familyCode: text("family_code").notNull().unique(), // Unique family identifier
   familyName: text("family_name").notNull(),
-  pin: text("pin").notNull(), // 4-6 digit PIN for authentication
+  pinHash: text("pin_hash").notNull(), // Hashed PIN for secure authentication
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -27,6 +27,7 @@ export const parents = pgTable("parents", {
   familyId: varchar("family_id").notNull(),
   name: text("name").notNull(),
   email: text("email"), // Optional email for recovery
+  pinHash: text("pin_hash"), // Hashed PIN for parent-specific authentication
   role: text("role").notNull().$type<UserRole>().default("parent"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
