@@ -685,11 +685,15 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
   // ===== Family Management =====
   app.post("/api/families", async (req, res) => {
     try {
+      console.log("[Family Creation] Starting family creation with data:", req.body);
+      
       // Validate input using Zod schema
       const data = insertFamilySchema.parse(req.body);
+      console.log("[Family Creation] Input validated");
       
       // The storage layer will handle PIN hashing
       const family = await storage.createFamily(data);
+      console.log("[Family Creation] Family created:", family.id);
       
       // Create default parent account for the family
       const parent = await storage.createParent({
@@ -697,11 +701,13 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
         name: data.familyName + " Admin",
         role: "parent" as any,
       });
+      console.log("[Family Creation] Parent account created:", parent.id);
       
       // Create default family settings
       await storage.upsertFamilySettings(family.id, {
         familyId: family.id,
       });
+      console.log("[Family Creation] Family settings created");
       
       // Establish session for the new family
       req.session.familyId = family.id;
@@ -712,14 +718,26 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
       // Save session before sending response
       req.session.save((err) => {
         if (err) {
-          console.error('Failed to save session:', err);
+          console.error('[Family Creation] Failed to save session:', err);
+        } else {
+          console.log('[Family Creation] Session saved successfully');
         }
       });
       
+      console.log("[Family Creation] Success! Family ID:", family.id);
       res.json({ family, parent });
-    } catch (error) {
-      console.error("Error creating family:", error);
-      res.status(400).json({ error: "Failed to create family" });
+    } catch (error: any) {
+      console.error("[Family Creation] ERROR:", error);
+      console.error("[Family Creation] Error stack:", error?.stack);
+      console.error("[Family Creation] Error details:", {
+        message: error?.message,
+        code: error?.code,
+        name: error?.name
+      });
+      res.status(400).json({ 
+        error: "Failed to create family",
+        details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      });
     }
   });
 
