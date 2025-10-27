@@ -334,6 +334,42 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
     }
   });
 
+  // ===== Session Management =====
+  app.get("/api/session", async (req, res) => {
+    try {
+      if (req.session.familyId || req.session.parentId) {
+        res.json({
+          authenticated: true,
+          userType: req.session.userType,
+          familyId: req.session.familyId,
+          parentId: req.session.parentId,
+          childId: req.session.childId,
+          familyCode: req.session.familyCode
+        });
+      } else {
+        res.json({ authenticated: false });
+      }
+    } catch (error) {
+      console.error("Error checking session:", error);
+      res.status(500).json({ error: "Failed to check session" });
+    }
+  });
+
+  app.post("/api/logout", async (req, res) => {
+    try {
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Error destroying session:", err);
+          return res.status(500).json({ error: "Failed to logout" });
+        }
+        res.json({ success: true });
+      });
+    } catch (error) {
+      console.error("Error during logout:", error);
+      res.status(500).json({ error: "Failed to logout" });
+    }
+  });
+
   // ===== Children Profiles =====
   app.get("/api/children", requireFamilyAuth, async (req, res) => {
     try {

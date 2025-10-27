@@ -15,6 +15,7 @@ import {
 import { Plus, User, ArrowLeft, UserPlus, Shield } from "lucide-react";
 import type { Child } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { checkSession } from "@/lib/auth";
 import duneImage from "@assets/dune-with-pinwheel-241x300_1760364974212.jpg";
 
 const AVATAR_COLORS = [
@@ -31,31 +32,32 @@ export default function ProfileSelect() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newChildName, setNewChildName] = useState("");
   const [selectedColor, setSelectedColor] = useState(AVATAR_COLORS[0].value);
+  const [sessionData, setSessionData] = useState<any>(null);
   
-  // Check for family authentication
-  const familyId = localStorage.getItem("familyId");
-  const familyCode = localStorage.getItem("familyCode");
-  const userRole = localStorage.getItem("userRole");
-  
-  // Redirect if no family is set up
+  // Check for family authentication via session
   useEffect(() => {
-    if (!familyId || !familyCode) {
-      setLocation("/family-setup");
-    }
-    // If parent is logged in, redirect to parent dashboard
-    if (userRole === "parent") {
-      setLocation("/parent-dashboard");
-    }
-  }, [familyId, familyCode, userRole, setLocation]);
+    checkSession().then((session) => {
+      if (!session.authenticated || !session.familyId) {
+        setLocation("/family-setup");
+        return;
+      }
+      setSessionData(session);
+      
+      // If parent is logged in, redirect to parent dashboard
+      if (session.userType === "parent") {
+        setLocation("/parent-dashboard");
+      }
+    });
+  }, [setLocation]);
 
   const { data: children = [], isLoading } = useQuery<Child[]>({
-    queryKey: ["/api/children", familyCode],
+    queryKey: ["/api/children", sessionData?.familyCode],
     queryFn: async () => {
-      const response = await fetch(`/api/children?familyCode=${familyCode}`);
+      const response = await fetch(`/api/children?familyCode=${sessionData?.familyCode}`);
       if (!response.ok) throw new Error("Failed to fetch children");
       return response.json();
     },
-    enabled: !!familyCode,
+    enabled: !!sessionData?.familyCode,
   });
 
   const createChildMutation = useMutation({
@@ -64,7 +66,7 @@ export default function ProfileSelect() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/children?familyCode=${familyCode}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/children?familyCode=${sessionData?.familyCode}`] });
       setIsDialogOpen(false);
       setNewChildName("");
       setSelectedColor(AVATAR_COLORS[0].value);
@@ -78,18 +80,18 @@ export default function ProfileSelect() {
   };
 
   const handleCreateChild = () => {
-    if (newChildName.trim() && familyCode && familyId) {
+    if (newChildName.trim() && sessionData?.familyCode && sessionData?.familyId) {
       createChildMutation.mutate({
         name: newChildName.trim(),
         avatarColor: selectedColor,
-        familyCode,
-        familyId,
+        familyCode: sessionData.familyCode,
+        familyId: sessionData.familyId,
       });
     }
   };
 
-  // If no family code (this should be handled by redirect already but just in case)
-  if (!familyCode || !familyId) {
+  // If no session data (this should be handled by redirect already but just in case)
+  if (!sessionData?.familyCode || !sessionData?.familyId) {
     return null;
   }
 
