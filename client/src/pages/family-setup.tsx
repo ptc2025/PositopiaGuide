@@ -94,8 +94,9 @@ export default function FamilySetup() {
         description: "Your family account has been set up successfully"
       });
       
-      // Navigate to profile selection page
-      setLocation("/select-profile");
+      // Navigate to parent dashboard (family creators are parents)
+      console.log("[Frontend] Redirecting to parent dashboard");
+      setLocation("/parent-dashboard");
     } catch (error: any) {
       console.error("[Frontend] Family creation error:", error);
       
