@@ -52,6 +52,20 @@ export default function Home() {
   const handleEmotionClick = (emotion: TrafficLightEmotion) => {
     setSelectedEmotion(emotion);
     setResponseContent(null);
+    
+    // Auto-submit with default text for abstract traffic light interface
+    // This allows young children to use the app without typing
+    const defaultTexts = {
+      red: "I'm feeling red today",
+      yellow: "I'm feeling yellow today",  
+      green: "I'm feeling green today"
+    };
+    
+    analyzeMutation.mutate({
+      emotion,
+      text: defaultTexts[emotion],
+      childId: selectedChildId || undefined,
+    });
   };
 
   const handleSubmit = () => {
