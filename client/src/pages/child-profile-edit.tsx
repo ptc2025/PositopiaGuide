@@ -126,7 +126,7 @@ export default function ChildProfileEdit() {
     },
     onSuccess: (result) => {
       console.log("Child Profile Edit - Save successful:", result);
-      queryClient.invalidateQueries({ queryKey: ["/api/children", sessionData?.familyCode] });
+      queryClient.invalidateQueries({ queryKey: [`/api/children?familyCode=${sessionData?.familyCode}`] });
       toast({
         title: childId ? "Profile Updated" : "Profile Created",
         description: "Child profile has been saved successfully"

@@ -428,10 +428,23 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
   app.get("/api/children/:id", requireParentAuth, async (req, res) => {
     try {
       const { id } = req.params;
+      
+      // Security: Verify session has familyId
+      if (!req.session.familyId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
       const child = await storage.getChildById(id);
+      
       if (!child) {
         return res.status(404).json({ error: "Child not found" });
       }
+      
+      // Security: Verify child belongs to requesting parent's family using familyId
+      if (child.familyId !== req.session.familyId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
       res.json(child);
     } catch (error) {
       console.error("Error fetching child:", error);
@@ -442,11 +455,24 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
   app.put("/api/children/:id", requireParentAuth, async (req, res) => {
     try {
       const { id } = req.params;
-      const data = insertChildSchema.partial().parse(req.body);
-      const child = await storage.updateChild(id, data);
-      if (!child) {
+      
+      // Security: Verify session has familyId
+      if (!req.session.familyId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
+      // Security: Verify child belongs to requesting parent's family BEFORE updating
+      const existingChild = await storage.getChildById(id);
+      if (!existingChild) {
         return res.status(404).json({ error: "Child not found" });
       }
+      if (existingChild.familyId !== req.session.familyId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      // Security: Parse and validate, then explicitly exclude immutable family fields to prevent tampering
+      const { familyId, familyCode, ...updateData } = insertChildSchema.partial().parse(req.body);
+      const child = await storage.updateChild(id, updateData);
       res.json(child);
     } catch (error) {
       console.error("Error updating child:", error);
@@ -457,6 +483,21 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
   app.delete("/api/children/:id", requireParentAuth, async (req, res) => {
     try {
       const { id } = req.params;
+      
+      // Security: Verify session has familyId
+      if (!req.session.familyId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
+      // Security: Verify child belongs to requesting parent's family BEFORE deleting
+      const existingChild = await storage.getChildById(id);
+      if (!existingChild) {
+        return res.status(404).json({ error: "Child not found" });
+      }
+      if (existingChild.familyId !== req.session.familyId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
       await storage.deleteChild(id);
       res.json({ success: true });
     } catch (error) {
@@ -960,11 +1001,23 @@ Respond in JSON with: {"category": "red|yellow|green", "reasoning": "brief expla
       req.session.parentId = parent.id;
       req.session.userType = 'parent';
       
-      // Save session before sending response
-      req.session.save((err) => {
-        if (err) {
-          console.error('Failed to save session:', err);
-        }
+      // Save session before sending response - WAIT for it to complete
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error('[Parent Login] Failed to save session:', err);
+            reject(err);
+          } else {
+            console.log('[Parent Login] Session saved successfully');
+            console.log('[Parent Login] Session data:', {
+              parentId: req.session.parentId,
+              familyId: req.session.familyId,
+              familyCode: req.session.familyCode,
+              userType: req.session.userType
+            });
+            resolve();
+          }
+        });
       });
       
       res.json({ success: true, family, parent });

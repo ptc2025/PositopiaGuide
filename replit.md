@@ -1,234 +1,44 @@
 # Positopia Companion App
 
 ## Overview
-An interactive emotional learning web app for children based on the Positopia World book featuring Dune the Bunny. Children use a traffic light interface (red/yellow/green buttons) to describe their feelings and receive AI-selected personalized responses including musical tracks, affirmations, activities, and jokes.
-
-## Recent Changes (Oct 27, 2025)
-
-### Production-Ready Session Store Implementation
-- **CRITICAL FIX**: Replaced MemoryStore with PostgreSQL session store (connect-pg-simple)
-- MemoryStore loses all sessions on server restart (not production-safe)
-- PostgreSQL session store persists sessions across server restarts
-- Auto-creates session table in production database
-- Sessions now survive deployments and server restarts
-- Added comprehensive error logging for family creation debugging
-- Family creation now properly establishes sessions in both dev and production
-- **Session-Based Authentication**: All pages now use checkSession() instead of localStorage
-- Updated parent-dashboard to use session data instead of localStorage
-- Fixed redirect loop between family-setup → profile-select → parent-dashboard
-- Logout now properly clears server-side sessions via /api/logout endpoint
-- Installed missing `pg` package required for PostgreSQL session storage
-- **Trust Proxy Fix**: Added `app.set('trust proxy', 1)` for production secure cookies
-  - Required for apps behind reverse proxy (Replit's deployment infrastructure)
-  - Enables secure cookies to work correctly in production HTTPS environments
-  - Without this, sessions won't persist in published apps
-- **Session Save Race Condition Fix**: Fixed async session.save() timing issues
-  - All login endpoints now await session.save() before sending responses
-  - Ensures session data is persisted to database before client receives confirmation
-  - Fixed profile creation failures caused by unsaved session data in production
-  - Added session data logging for debugging
-
-### Previous Changes (Oct 23, 2025)
-
-### Breathing Page Complete Overhaul
-- Redesigned with "Magical Breathing" title and Dune the Bunny as animated guide
-- Added 4 customizable breathing patterns: Calm & Easy, Box Breathing, Sleepy Time, Energy Boost
-- Implemented three-tab interface: Exercise, Customize, Progress
-- Added visual customization with 4 themes (Balloon, Flower, Ocean Wave, Butterfly)
-- Created adjustable speed controls (0.5x to 1.5x) for different age groups
-- Built achievement system with 5 milestone badges and session tracking
-- Added floating particle animations and progress ring visualization
-- Included sound toggle for audio breathing cues
-- Implemented session timer and cycle counter for progress tracking
-- Enhanced with instructional tooltips from Dune character guide
-
-### Calendar Page Complete Overhaul
-- Redesigned with enhanced children's book aesthetic and improved visual emotion representation
-- Added emotion legend with icons (Happy/Sun, Unsure/Cloud, Difficult/CloudRain) - no emojis
-- Implemented 4 interactive stats cards: Check-ins This Month, Happy Streak, Happiness Rate, To Next Badge
-- Enhanced calendar grid with larger cells (80px height) and gradient backgrounds for emotions
-- Added day details sidebar with Dune character helper when clicking dates
-- Created dual-tab interface: Calendar View and AI Insights
-- Implemented smooth month navigation with previous/next buttons
-- Added floating calendar icon animations for visual appeal
-- Built progress tracking for achievement badges (5, 10, 25, 50, 100 check-ins)
-- Fixed Calendar icon import conflict using CalendarIcon alias
-
-### Complete Children's Book Theme Implementation
-- Applied comprehensive storybook theme to all pages: Calendar, History, Breathing, Admin, and 404
-- All pages now have cartoon backyard background with animated floating clouds
-- All content cards use storybook-card styling with wooden border effects
-- Implemented consistent child-friendly typography across all pages
-- Verified theme consistency through end-to-end testing
-- Ensured no emojis are used anywhere in the UI
-
-## Previous Changes (Oct 21, 2025)
-
-### Authentication Consistency Fix
-- Fixed profile-select page to properly update component state when setting family code
-- Separated input field state from actual family code state to prevent UI issues
-- Dashboard now uses useEffect pattern consistent with other pages
-- Profile selection ensures family code is saved to localStorage when selecting a child
-- All pages accessible with same authentication token without re-authentication
-- Resolved issue where dashboard would redirect back to profile selection unnecessarily
-
-### Check-In Calendar & AI Insights (Oct 18, 2025)
-- Implemented visual emotion calendar showing red/yellow/green days
-- Monthly view with emotion color coding for each day
-- Click on days to view detailed check-ins with timestamps
-- AI-powered insights analyze emotional patterns and trends
-- Monthly statistics track total check-ins and emotion distribution
-- Streak tracking for consecutive green (positive) days
-- Calendar accessible from main navigation
-
-### UI Redesign - Abstract Traffic Light Interface
-- Redesigned emotion selection as pure circular colored buttons
-- Removed all text and descriptions for true abstract representation
-- Three 128px circles arranged vertically like a real traffic light
-- Clean, minimalist design focused on color association
-- Smooth hover and click animations for tactile feedback
-- Maintained accessibility with aria-labels
-
-### Audio & Text-to-Speech Enhancement
-- Implemented auto-play functionality for background music when responses are shown
-- ~~Added text-to-speech (TTS) for affirmations using Web Speech API~~
-- **Upgraded to OpenAI's Text-to-Speech API for natural, human-like voices**
-- Using "Nova" voice profile - warm, friendly female voice perfect for children
-- Created CombinedAudioPlayer component for synchronized playback
-- Music plays at 50% volume while AI voice reads affirmations
-- Single play/pause button controls both audio streams simultaneously
-- Added restart button to replay both music and affirmation
-- Voice speaks at 0.9x speed for better child comprehension
-
-### Previous Updates (Oct 13, 2025)
-
-### Multi-Child & Family Support
-- Added `children` and `emotionCheckIns` database tables for profile management
-- Implemented family code system for grouping children (families/classrooms)
-- Built profile selection UI with colorful avatar system
-- Created child profile CRUD operations with secure family-scoped queries
-- Automatic emotion check-in logging when children share feelings
-
-### Analytics & Insights
-- Built parent/teacher dashboard with family-wide analytics
-- Emotion breakdown tracking (red/yellow/green distribution)
-- Per-child statistics and recent activity timeline
-- Individual child emotion history page with chronological check-ins
-
-### Wellness Features
-- Breathing exercise page with animated guides (Box, 4-7-8, Simple Deep)
-- Visual breathing circle with color-coded phases and countdown timer
-- Play/pause/reset controls for guided meditation practice
-
-### Previous Updates
-- Implemented complete object storage integration for audio file uploads
-- Added AI-powered auto-categorization for audio files (red/yellow/green/general)
-- Created object storage service with presigned URL upload functionality
-- Built comprehensive audio manager UI with file upload capabilities
-- Configured PostgreSQL database with Drizzle ORM for all content types
-- Fixed object path normalization to use bucket-relative paths
-- Added contentType support for different audio formats (MP3, WAV, etc.)
-- Improved error handling for upload failures and categorization issues
-- Created database seed script with age-appropriate initial content
-- Added fallback path normalization endpoint for failed AI categorization
-
-## Project Architecture
-
-### Database Schema
-- **audio_files**: Musical tracks with emotion categories and volume settings
-- **affirmations**: Positive messages categorized by emotion
-- **activities**: Suggested activities for different emotional states
-- **jokes**: Kid-friendly jokes to lift spirits
-- **tts_settings**: Text-to-speech configuration (planned: emotion-specific profiles)
-- **children**: Child profiles with names, avatar colors, and family codes
-- **emotionCheckIns**: Emotion tracking with timestamps, feelings, and detected emotions
-
-### Tech Stack
-- **Frontend**: React, Wouter (routing), TanStack Query, Shadcn UI
-- **Backend**: Express.js, Node.js
-- **Database**: PostgreSQL (Neon) via Drizzle ORM
-- **AI**: OpenAI GPT-4o-mini (emotion categorization & content selection)
-- **Storage**: Google Cloud Object Storage (audio files)
-- **Styling**: Tailwind CSS with custom child-friendly design system
-
-### Key Features
-1. **Traffic Light Interface**: Red/yellow/green buttons for emotion input
-2. **AI Response System**: Categorizes emotions and selects appropriate content
-3. **Audio Playback**: Streams music from object storage with volume control
-4. **Multi-Child Profiles**: Family code system for grouping children
-5. **Emotion History**: Track emotional check-ins over time per child
-6. **Parent/Teacher Dashboard**: Analytics and insights across all children
-7. **Breathing Exercises**: Guided meditation with animated breathing circles
-8. **Admin Panel**: Full CRUD for all content types
-9. **Auto-Categorization**: AI categorizes uploaded audio files by emotion
-
-### Design System
-- **Colors**: Soft teal primary, gentle purple secondary, warm cream backgrounds
-- **Typography**: Inter font family, large readable text
-- **Interactions**: Child-friendly 80px minimum touch targets
-- **Layout**: Mobile-first, tablet-optimized (768px breakpoint)
-- **Border Radius**: Friendly rounded corners (0.875rem)
-
-### Object Storage Setup
-- **Bucket ID**: replit-objstore-87950f76-4bb1-4a97-905d-e8420e4cb00e
-- **Public Path**: /replit-objstore-87950f76-4bb1-4a97-905d-e8420e4cb00e/public
-- **Private Path**: /replit-objstore-87950f76-4bb1-4a97-905d-e8420e4cb00e/.private
-- **Audio Storage**: Private directory with presigned URL access
-
-## API Endpoints
-
-### Object Storage
-- `POST /api/audio/upload-url` - Generate presigned upload URL
-- `POST /api/audio/categorize` - AI categorize uploaded audio
-- `GET /objects/:objectPath(*)` - Download private objects
-- `GET /public-objects/:filePath(*)` - Search and download public objects
-
-### Content Management
-- `GET/POST /api/audio` - Audio files CRUD
-- `PATCH/DELETE /api/audio/:id` - Update/delete audio
-- `GET/POST /api/affirmations` - Affirmations CRUD
-- `GET/POST /api/activities` - Activities CRUD
-- `GET/POST /api/jokes` - Jokes CRUD
-- `GET/POST /api/tts-settings` - TTS configuration CRUD
-- `POST /api/calendar-insights` - Generate AI insights from emotion patterns
-
-### Child Profiles & Tracking
-- `GET /api/children?familyCode={code}` - Get children by family code
-- `POST /api/children` - Create new child profile
-- `PUT /api/children/:id` - Update child profile
-- `DELETE /api/children/:id` - Delete child profile
-- `GET /api/emotion-checkins?childId={id}` - Get child's emotion history
-- `GET /api/dashboard?familyCode={code}` - Get family dashboard analytics
-
-### AI Integration
-- `POST /api/analyze-emotion` - Analyze emotion and select content (logs check-in)
+The Positopia Companion App is an interactive web application designed for children to learn about and express their emotions. Based on the "Positopia World" book, the app features Dune the Bunny and uses a simplified traffic light interface (red/yellow/green buttons) for children to indicate their feelings. An AI system then provides personalized responses, including musical tracks, affirmations, activities, and jokes, tailored to the child's emotional state. The project aims to provide a safe, engaging, and supportive digital environment for emotional learning, offering tools for self-regulation and positive reinforcement.
 
 ## User Preferences
-- Child-friendly UI design is critical - large buttons, bright colors, simple language
-- Audio files must use object storage (not local paths)
-- AI should select age-appropriate, positive content
-- Admin panel should be comprehensive but straightforward
+- Child-friendly UI design is critical - large buttons, bright colors, simple language.
+- Audio files must use object storage (not local paths).
+- AI should select age-appropriate, positive content.
+- Admin panel should be comprehensive but straightforward.
+- The UI should not use emojis for consistency.
+- I prefer detailed explanations.
+- I want iterative development.
+- Ask before making major changes.
 
-## Running the Project
-- Command: `npm run dev` (via "Start application" workflow)
-- Server runs on port 5000
-- Frontend and backend served on same port via Vite
-- Database migrations: `npm run db:push` (or `--force` if needed)
+## System Architecture
+The application features a comprehensive storybook theme across all pages, including a cartoon backyard background with animated floating clouds and content cards with wooden border effects. It uses consistent child-friendly typography and prioritizes accessibility with 80px minimum touch targets and a mobile-first, tablet-optimized layout.
 
-## Important Files
-- `shared/schema.ts` - Database schema and types
-- `server/routes.ts` - API endpoints
-- `server/storage.ts` - Database storage layer
-- `server/objectStorage.ts` - Object storage service
-- `server/openai.ts` - OpenAI integration
-- `client/src/pages/home.tsx` - Main traffic light interface
-- `client/src/pages/profile-select.tsx` - Child profile selection
-- `client/src/pages/history.tsx` - Individual emotion history
-- `client/src/pages/calendar.tsx` - Check-in calendar with insights
-- `client/src/pages/dashboard.tsx` - Family analytics dashboard
-- `client/src/pages/breathing.tsx` - Breathing exercises
-- `client/src/pages/admin.tsx` - Admin dashboard
-- `client/src/components/admin/audio-manager.tsx` - Audio upload & management
-- `client/src/components/check-in-calendar.tsx` - Calendar component
-- `design_guidelines.md` - UI/UX design specifications
-- `tailwind.config.ts` - Tailwind configuration with custom colors
+**Technical Implementations:**
+- **Frontend**: React, Wouter for routing, TanStack Query for data fetching, and Shadcn UI components.
+- **Backend**: Express.js and Node.js.
+- **Database**: PostgreSQL (Neon) managed with Drizzle ORM, storing various content types, child profiles, and emotion check-ins.
+- **Session Management**: PostgreSQL-backed session store (`connect-pg-simple`) for production-grade authentication and session persistence.
+- **AI Integration**: OpenAI GPT-4o-mini is used for emotion categorization of user input and content selection. OpenAI's Text-to-Speech API ("Nova" voice) provides natural voice for affirmations.
+- **Object Storage**: Google Cloud Object Storage is used for storing audio files, with presigned URLs for secure uploads and access.
+- **Styling**: Tailwind CSS with a custom design system featuring soft teal, gentle purple, and warm cream colors, and friendly rounded corners.
+
+**Feature Specifications:**
+- **Traffic Light Interface**: Abstract red/yellow/green buttons for emotion input, auto-submitting default text for young children.
+- **AI Response System**: Categorizes emotions and dynamically selects appropriate content (music, affirmations, activities, jokes).
+- **Audio Playback**: Streams music from object storage, with synchronized playback of AI voice and background music.
+- **Multi-Child & Family Support**: Secure family code system for grouping children, with profile selection and CRUD operations for child profiles.
+- **Emotion History & Analytics**: Individual child emotion history, calendar view with visual emotion representation, and parent/teacher dashboard with family-wide analytics and AI-powered insights into emotional patterns.
+- **Wellness Features**: Guided breathing exercise page with animated guides, customizable patterns, visual themes, speed controls, and achievement tracking.
+- **Admin Panel**: Comprehensive interface for managing all content types (audio, affirmations, activities, jokes, TTS settings) with AI-powered auto-categorization for uploaded audio files.
+
+## External Dependencies
+- **Database**: PostgreSQL (specifically Neon for cloud hosting)
+- **AI Services**: OpenAI (GPT-4o-mini for content selection/categorization, Text-to-Speech API for voice generation)
+- **Object Storage**: Google Cloud Object Storage
+- **Frontend Libraries**: React, Wouter, TanStack Query, Shadcn UI
+- **Backend Libraries**: Express.js, Node.js, `connect-pg-simple` (for PostgreSQL session store), Drizzle ORM
+- **Styling**: Tailwind CSS
+- **Other**: `pg` (PostgreSQL client for Node.js)
