@@ -411,26 +411,43 @@ export class DatabaseStorage implements IStorage {
   }
 
   async validateFamilyPin(familyCode: string, pin: string): Promise<boolean> {
+    console.log(`[validateFamilyPin] Checking familyCode: ${familyCode}, pin: ${pin}`);
     const family = await this.getFamilyByCode(familyCode);
-    if (!family) return false;
+    if (!family) {
+      console.log(`[validateFamilyPin] Family not found for code: ${familyCode}`);
+      return false;
+    }
+    console.log(`[validateFamilyPin] Found family: ${family.id}, name: ${family.familyName}`);
+    
     // Work with existing 'pin' column in database
     const storedPin = (family as any).pin;
-    if (!storedPin) return false;
+    if (!storedPin) {
+      console.log(`[validateFamilyPin] No PIN stored for family`);
+      return false;
+    }
+    
+    console.log(`[validateFamilyPin] Stored PIN starts with: ${storedPin.substring(0, 7)}, length: ${storedPin.length}`);
     
     // If the PIN is not hashed yet (legacy plaintext), compare directly then update to hash
     if (!storedPin.startsWith('$2')) {
+      console.log(`[validateFamilyPin] PIN not hashed, comparing plaintext`);
       if (storedPin === pin) {
         // Update to hashed PIN for next time
         const hash = await bcrypt.hash(pin, 10);
         await db.update(families)
           .set({ pin: hash } as any)
           .where(eq(families.id, family.id));
+        console.log(`[validateFamilyPin] Plaintext match, updated to hash`);
         return true;
       }
+      console.log(`[validateFamilyPin] Plaintext mismatch`);
       return false;
     }
     // Compare with bcrypt hash
-    return await bcrypt.compare(pin, storedPin);
+    console.log(`[validateFamilyPin] Comparing hashed PIN with bcrypt`);
+    const result = await bcrypt.compare(pin, storedPin);
+    console.log(`[validateFamilyPin] bcrypt.compare result: ${result}`);
+    return result;
   }
 
   // Parents
