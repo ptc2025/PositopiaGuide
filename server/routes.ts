@@ -425,6 +425,20 @@ Respond in JSON with: {"category": "red|yellow|green|general", "reasoning": "bri
     }
   });
 
+  app.get("/api/children/:id", requireParentAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const child = await storage.getChildById(id);
+      if (!child) {
+        return res.status(404).json({ error: "Child not found" });
+      }
+      res.json(child);
+    } catch (error) {
+      console.error("Error fetching child:", error);
+      res.status(500).json({ error: "Failed to fetch child" });
+    }
+  });
+
   app.put("/api/children/:id", requireParentAuth, async (req, res) => {
     try {
       const { id } = req.params;
